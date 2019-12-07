@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>~~title~~</title>
+    
+    <link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+    <link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+    <link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+    <link rel="stylesheet" href="index.css">
+    <script src="../../common/js/moment.js"></script>
+    <script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+    <script type="text/javascript" src="../../common/plugins/vue-qrcode/docs/js/vue-qrcode.js"></script>
+    <script type="text/javascript" src="../../common/js/comm.js"></script>
+    <script type="text/javascript" src="../../common/js/session-check.js"></script>
+    <script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            selfHost: UBIT.selfHost,
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+            tags:{}
+        };
+        UBIT.initLang('polling');
+    </script>
+</head>
+<body>
+    <div id="app">
+        <div id="projectPollingtoolbar">
+            <el-button @click="add" size="small" type="primary">~~add~~</el-button>
+             <!--<el-button type="warning"  size="small"  @click="updateTask" >修改</el-button>-->
+            <el-button @click="deleteTask" size="small" type="danger">~~delete~~</el-button>
+        </div>
+        <table id="projectPolling"></table>
+        <el-dialog title="~~addTask~~" :visible.sync="dialogVisible" width="60%">
+            <el-row type="flex">
+                <el-col :span="12">
+                    <div class="dialogSpan">~~selectMember~~</div>
+                </el-col>
+                <el-col :span="24">
+                    <el-select filterable="" v-model="member">
+                        <el-option v-for="item in members" :key='item' :label="item.alias?item.alias:item.code + '(' + item.sourceId + ')'" :value="item.sourceId"></el-option>
+                    </el-select>
+                </el-col>
+            </el-row>
+            <el-row type="flex">
+                <el-col :span="8">
+                    <div class="dialogSpan">~~selectDate~~</div>
+                </el-col>
+                <el-col :span="8">
+                    <el-date-picker v-model="startDate" type="date" placeholder="~~selectStartDate~~">
+                    </el-date-picker>                    
+                </el-col>
+                <el-col :span="8">
+                    <el-date-picker v-model="endDate" type="date" placeholder="~~selectEndDate~~">
+                    </el-date-picker>                    
+                </el-col>
+            </el-row>
+            <el-row type="flex">
+                <el-col :span="12">
+                    <div class="dialogSpan">~~selectTime~~</div>
+                </el-col>
+                <el-col :span="12">
+                    <el-time-select v-model="start" is-range="" size="medium" :picker-options="{
+                            start: '08:00',
+                            step: '00:05',
+                            end: '22:00'
+                        }" placeholder='~~selectStartTime~~'>
+                    </el-time-select>
+                </el-col>
+                <el-col :span="12">
+                    <el-time-select v-model="end" is-range="" size="medium" :picker-options="{
+                            start: '08:00',
+                            step: '00:05',
+                            end: '22:00'
+                        }" placeholder='~~selectEndTime~~'>
+                    </el-time-select>
+                </el-col>
+            </el-row>
+            <el-row type="flex">
+                <el-col :span="12"><div class="dialogSpan">~~selectMap~~</div></el-col>
+                <el-col :span="24">
+                    <el-select v-on:change="selectMap" v-model="selectMaps">
+                        <el-option v-for="item in maps" :key='item' :label="item.cname + '(' + item.id + ')'" :value="item.id"></el-option>
+                    </el-select>
+                </el-col>
+            </el-row>
+            <el-row type="flex">
+                <el-col :span="12"><div class="dialogSpan">~~selectPollingArea~~</div></el-col>
+                <el-col :span="24">
+                    <el-select multiple="" filterable="" v-model="fence">
+                        <el-option v-for="item in fences" :key='item' :label="item.cname" :value="item.id"></el-option>
+                    </el-select>
+                </el-col>
+            </el-row>
+            <el-row type="flex">
+                <el-col :span="10" :offset="7">
+                    <el-button @click='addTask' type="primary">{{addTaskButtonText}}</el-button>
+                </el-col>
+            </el-row>
+        </el-dialog>
+
+        <el-dialog :title='"~~pollingHistory~~ " + dateRange' :visible.sync='historyVisible' width='80%'>
+            <!-- <el-row>
+                <el-col :span='24'>
+                    <div>{{dateRange}}</div>
+                </el-col>
+            </el-row> -->
+            <el-row>
+                <el-col :span='8'>
+                    <div class="dialogSpan">~~checkTagetHistory~~</div>
+                </el-col>
+                <el-col :span='16'>
+                    <el-date-picker @change='historyDateChange' v-model="historyDate" type="date" placeholder="~~selectDate~~">
+                    </el-date-picker>
+                </el-col>
+            </el-row>
+            <el-row>
+                <div class='historyContent'>
+                    <el-row v-for='(item,index) in currentHistory' :key='index'>
+                        <span class="finish">{{item.alias}}</span>~~on~~<span class="finish">{{item.inTime}}</span>~~in~~<b>{{item.fence}}</b>,~~on~~<span class="finish">{{item.outTime}}</span>出<b>{{item.fence}}</b>
+                    </el-row>
+                </div>
+            </el-row>
+        </el-dialog>
+    </div>
+    <footer>
+        <script type="text/javascript" src="index.js"></script>
+    </footer>
+</body>
+</html>

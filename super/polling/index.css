@@ -1,0 +1,42 @@
+[v-cloak] {
+    display: none;
+}
+
+.dialogSpan{
+    width:100%;
+    text-align:center;
+    height:100%;
+    line-height:40px;
+}
+.el-row{
+    margin-bottom:10px;
+}
+.el-col > * {
+    width:100% !important;
+}
+.finish{
+    color:blue;
+}
+
+.warning{
+    color:red;
+}
+.doing{
+    color:orange;
+}
+
+.delete{
+    color:#ccc;
+}
+
+.history{
+    height:30px;
+    border:none;
+    
+}
+
+.historyContent{
+    height:200px;
+    overflow-y: scroll;
+    padding:0 10px;
+}

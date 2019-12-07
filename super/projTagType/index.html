@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+		UBIT.initLang('projTagType');
+	</script>
+
+</head>
+<body>
+
+	<div id="app" v-cloak="">
+
+		<div id="tagTypetoolbar">
+			<el-button type="info" size="small" @click="tagTypeAdd">~~add~~</el-button>
+			<el-button type="warning" size="small" @click="tagTypeUpdate">~~update~~</el-button>
+			<el-button type="danger" size="small" @click="tagTypeDelete" :loading="tagTypeDeleteBtnDisable">~~delete~~</el-button>
+			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('tagTypetable', true);">~~exports~~</el-button>
+
+		</div>
+
+
+		<table id="tagTypetable"></table>
+
+		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="200px" class="demo-ruleForm">
+
+					<el-form-item>
+						<span style="color:red;">~~note~~</span>
+					</el-form-item>
+
+				  	<el-form-item label="~~cname~~" prop="cname">
+			    		<el-input type="text" v-model="form.cname" auto-complete="off"></el-input>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~memo~~" prop="memo">
+			    		<el-input type="text" v-model="form.memo" auto-complete="off"></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="~~icon~~" prop="icon">
+
+						<el-upload class="upload-tagType" name='tagType_icon' ref='imgUpload' :disabled='imgUpload.disabled' :headers='imgUpload.headers' :action="imgUpload.url" :auto-upload="imgUpload.auto" :before-upload="checkImgSize" :on-success="handleImgUpload" :data="iconName" list-type="picture-card" :show-file-list="false">
+							<img :src="form.typeIcon" width="40px" v-if="form.typeIcon">
+							<i v-else="" class="el-icon-plus avatar-uploader-icon"></i>
+
+
+						</el-upload>
+						<template v-if="isCheckedOk">
+							<span style="color:red;">~~note2~~</span>
+						</template>
+				  	</el-form-item>
+
+
+				  	<el-form-item label="~~sort~~" prop="sort">
+			    		<el-input-number v-model="form.sort" :step="1" :min="0"></el-input-number>
+				  	</el-form-item>
+					
+					<el-form-item label="~~isActive~~" prop="isActive">
+				  	  <el-radio-group v-model="form.isActive">
+			    		<el-radio label="1">~~true~~</el-radio>
+  						<el-radio label="0">~~false~~</el-radio>
+  					  </el-radio-group>
+					  </el-form-item>
+
+					<el-form-item label="~~tagDisappear~~" prop="tagDisappear">
+					<el-input-number placeholder="~~tagDisappear~~" :min='0' :step="1" :max='1000000000' v-model="form.tagDisappear"></el-input-number>
+					</el-form-item>
+	
+				  	<el-form-item>
+				   		<el-button type="primary" @click="submitForm('form')" size="small" :loading="projTagTyBtnDisable">~~submit~~</el-button>
+					</el-form-item>
+			</el-form>
+
+		</el-dialog>
+
+
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+		UBIT.initLang('projTagCategory');
+	</script>
+
+</head>
+<body>
+	
+	<div id="app" v-cloak="">
+
+		<div id="tagCatetoolbar">
+			<el-button type="info" size="small" @click="tagCateAdd">~~add~~</el-button>
+			<el-button type="warning" size="small" @click="tagCateUpdate">~~update~~</el-button>
+			<el-button type="danger" size="small" @click="tagCateDelete" :loading="tagCateDeleteBtnDisable">~~delete~~</el-button>
+			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('tagCatetable', true);">~~exports~~</el-button>
+		</div>
+
+
+		<table id="tagCatetable"></table>
+
+		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="200px" class="demo-ruleForm">
+
+				<el-form-item>
+					<span style="color:red;">~~formNote~~</span>
+				</el-form-item>
+
+				<el-form-item label="~~cname~~" prop="cname">
+			    		<el-input type="text" v-model="form.cname" auto-complete="off"></el-input>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~color~~" prop="color">
+						<el-color-picker v-model="form.color" :predefine="predefineColor">
+						</el-color-picker>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~sort~~" prop="sort">
+			    		<el-input-number v-model="form.sort" :step="1" :min="0"></el-input-number>
+				  	</el-form-item>
+
+				  	<el-form-item>
+				   		<el-button type="primary" @click="submitForm('form')" size="small" :loading="projTagCaBtnDisable">~~submit~~</el-button>
+					</el-form-item>
+			</el-form>
+
+		</el-dialog>
+
+
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

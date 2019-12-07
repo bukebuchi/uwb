@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+	<link rel="stylesheet" href="../cfg/cfg.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+	<!--<script type="text/javascript" src="../../common/plugins/qrcode/qrcode.js"></script>-->
+	<script src="../../common/plugins/vue-qrcode/docs/js/vue-qrcode.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            selfHost: UBIT.selfHost,
+            //请求的服务器地址
+            host: UBIT.host,
+			imgHost: UBIT.imgHost,
+			iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+			addTags:null,
+		};
+		UBIT.initLang('tag');
+
+	</script>
+
+</head>
+<body>
+	
+	<div id="app" v-cloak="">
+
+		<div id="tagtoolbar">
+			<el-button type="info" size="small" @click="tagAdd">~~add~~</el-button>
+			<el-button type="warning" size="small" @click="tagUpdate">~~update~~</el-button>
+			<el-button type="warning" size="small" @click="tagUpdateMore">~~updateMore~~</el-button>
+
+			<el-button type="info" size="small" @click="syncTag" :loading="syncTagBtnDisable">~~sync~~</el-button>
+			<el-button type="danger" size="small" @click="tagDelete" :loading="tagDeleteBtnDisable">~~delete~~</el-button>
+			<!--<el-button type="info" size="small"  @click="createQrcode">二维码</el-button>-->
+			<el-button type="warning" size="small" @click="tagDownAlert" :loading="tagDownAlertBtnDisable">下发告警</el-button>
+			<el-button type="danger" size="small" @click="tagRestart" :loading="tagRestartBtnDisable">重启</el-button>
+
+			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('tagtable', true);">~~exports~~</el-button>
+
+			<el-button type="info" size="small" @click="setCf">~~setMapCf~~</el-button>
+
+		</div>
+
+		<table id="tagtable"></table>
+
+		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="200px" class="demo-ruleForm">
+
+				<el-tabs type='card'>
+				<el-tab-pane label="~~baseSetting~~">
+					<el-checkbox-group v-model="basicSelected" @change="selectedChange">
+				<el-form-item label="~~codeRange~~" prop="code_start" v-show="form.action=='add'">
+					<el-input type="text" v-model="form.code_start" auto-complete="off" placeholder="~~code_start~~"></el-input>
+					-
+					<el-input type="text" v-model="form.code_end" auto-complete="off" placeholder="~~code_end~~"></el-input>
+				</el-form-item>
+				<el-form-item label="~~code_num~~" prop="code" v-show="form.action=='add'">
+					<el-input type="text" v-model="form.tag_num" auto-complete="off" :disabled="true"></el-input>
+				</el-form-item>
+				<el-form-item label="~~tag~~~~code~~" prop="code" v-show="form.action=='update'">
+					<el-input type="text" v-model="form.code" :disabled="true" auto-complete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="~~alias~~" prop="alias" v-show="isShowAliasInput">
+					<el-checkbox label="alias" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="text" v-model="form.alias" :maxlength="24" auto-complete="off"></el-input>
+					</el-checkbox>
+				</el-form-item>
+				<el-form-item label="~~productId~~" prop="productId">
+					<el-checkbox label="productId" v-bind:class="{isHide:form.action=='add'}">
+					<el-select v-model="form.productId" placeholder="~~select~~" filterable="">
+						<el-option v-for="item in products" :key="item.id" :label="item.cname" :value="item.id+''">
+							<span style="float: left">{{ item.cname }}</span>
+							<span style="float: right; color: #8492a6; font-size: 13px">{{ item.description }}</span>
+						</el-option>
+						</el-select>
+					</el-checkbox>
+				</el-form-item>
+				<el-form-item label="~~catId~~" prop="catId">
+			    		<el-checkbox label="catId" v-bind:class="{isHide:form.action=='add'}">
+			    		<el-select v-model="form.catId" filterable="" placeholder="~~select~~">
+						    <el-option v-for="item in cats" :style="{color:item.color}" :key="item.id" :label="item.cname" :value="item.id+''">
+						    </el-option>
+						</el-select>
+						</el-checkbox>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~typeId~~" prop="typeId">
+						<el-checkbox label="typeId" v-bind:class="{isHide:form.action=='add'}">
+			    		<el-select v-model="form.typeId" filterable="" @change="changeIcon" placeholder="~~select~~">
+						    <el-option v-for="item in tagTypes" :key="item.id" :label="item.cname" :value="item.id+''">
+						    </el-option>
+						</el-select>
+						<img :src="form.typeIcon" width="40px" v-if="have">
+						</el-checkbox>
+				  	</el-form-item>
+				<el-form-item label="~~rxDelaytxDelay~~）" prop="rxDelaytxDelay" class="cooll">
+					<el-checkbox label="rxDelay@txDelay" v-bind:class="{isHide:form.action=='add'}">
+					<el-input type="number" step='0.01' v-model="form.rxDelay" placeholder="rx" auto-complete="off"></el-input>
+					<el-input type="number" step='0.01' v-model="form.txDelay" placeholder="tx" auto-complete="off"></el-input>
+					</el-checkbox>
+				</el-form-item>
+				<el-form-item label="~~maxPower~~" prop="maxPower">
+					<el-checkbox label="maxPower" v-bind:class="{isHide:form.action=='add'}">
+					<el-input-number v-model="form.maxPower" :step="100" :max='4200' :min="0"></el-input-number>
+					</el-checkbox>
+				</el-form-item>
+				<el-form-item label="~~manu~~" prop="manu">
+					<el-checkbox label="manu" v-bind:class="{isHide:form.action=='add'}">
+					<el-input type="text" v-model="form.manu" auto-complete="off"></el-input>
+					</el-checkbox>
+				</el-form-item>
+				<el-form-item label="~~swVersion~~" prop="softVersion">
+					<el-input type="text" v-model="form.softVersion" auto-complete="off" :disabled="true"></el-input>
+				</el-form-item>
+				<el-form-item label="~~hwVersion~~" prop="hardVersion">
+					<el-input type="text" v-model="form.hardVersion" auto-complete="off" :disabled="true"></el-input>
+				</el-form-item>
+				<el-form-item label="~~codes~~" v-show="form.action=='updateMore'">
+					<el-input type="textarea" v-model="form.codes" readonly="" :autosize="{ minRows: 2, maxRows: 4}"></el-input>
+				</el-form-item>
+				</el-checkbox-group>
+				<div style="clear:both;text-align:center;" v-show="form.action=='add'">
+					<el-button type="primary" @click="addDo" size="small" :loading="tagBtnDisable">~~submit~~</el-button>
+				</div>
+				<div style="clear:both;text-align:center;" v-show="form.action=='update'||form.action=='updateMore'">
+						<el-checkbox v-model="checkAllUpdate" @change="handleCheckAllChangeUpdate">~~selectAll~~</el-checkbox>
+						<el-button type="primary" @click="updateDo" size="small" :loading="tagBtnDisable">~~submit~~</el-button>
+					</div>
+				</el-tab-pane>
+
+				<el-tab-pane label="~~tagSetting~~">
+					<el-checkbox-group v-model="setSelected" @change="selectedChange">
+					<el-form-item label="~~refreshFreq~~" prop="locatingPeriod">
+						<el-checkbox label="locatingPeriod" v-bind:class="{isHide:form.action=='add'}">
+						<el-input-number v-model="form.locatingPeriod" :step="100" :min='10'></el-input-number>
+						</el-checkbox>
+					</el-form-item>
+						<el-form-item label="~~tagSlotSeqNum~~" prop="tagSlotSeqNum">
+							<el-checkbox label="tagSlotSeqNum" v-bind:class="{isHide:form.action=='add'}">
+								<el-input v-model="form.tagSlotSeqNum" placeholder="0 - 65535"></el-input>
+							</el-checkbox>
+						</el-form-item>
+					<el-form-item label="~~txPower~~" prop="txPower">
+						<el-checkbox label="txPower" v-bind:class="{isHide:form.action=='add'}">
+							<el-select v-model="form.txPower" placeholder="~~select~~">
+								<el-option v-for="item in txPowers" :key="item" :label="item" :value="item">
+								</el-option>
+							</el-select>
+					</el-checkbox>
+					</el-form-item>
+					<el-form-item label="~~wakeFreq~~" prop="wakeFreq">
+						<el-checkbox label="wakePeriod" v-bind:class="{isHide:form.action=='add'}">
+						<el-input-number v-model="form.wakePeriod" :step="1" :max='200' :min="1"></el-input-number>
+					</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="切站距离(m)" prop="switchDistance">
+						<el-checkbox label="switchDistance" v-bind:class="{isHide:form.action=='add'}">
+							<el-input v-model="form.switchDistance"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="定位模式" prop="locationMode">
+							<el-checkbox label="locationMode" v-bind:class="{isHide:form.action=='add'}">
+						<el-input v-model="form.locationMode"></el-input>
+						</el-checkbox>
+					</el-form-item>
+					<el-form-item label="进入休眠等待（s）" prop="sleepWait">
+						<el-checkbox label="sleepWait" v-bind:class="{isHide:form.action=='add'}">
+						<el-input-number v-model="form.sleepWait" :step="1" :min="1"></el-input-number>
+						</el-checkbox>
+					</el-form-item>
+					<el-form-item label="开启休眠" prop="isHoldPosition">
+						<el-checkbox label="isHoldPosition" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isHoldPosition">
+							<el-radio label="0">是</el-radio>
+							<el-radio label="1">否</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+					<el-form-item label="最小心率" prop="minHeart">
+						<el-checkbox label="minHeart" v-bind:class="{isHide:form.action=='add'}">
+							<el-input-number v-model="form.minHeart" controls-position="right" @change="" :min="0" :step='1'></el-input-number>
+					  </el-checkbox>
+					</el-form-item>
+					<el-form-item label="最大心率" prop="maxHeart">
+						<el-checkbox label="maxHeart" v-bind:class="{isHide:form.action=='add'}">
+							<el-input-number v-model="form.maxHeart" controls-position="right" @change="" :min="0" :step='1'></el-input-number>
+							</el-checkbox>
+					</el-form-item>  
+					<el-form-item label="开启蓝牙" prop="isHoldBle">
+						<el-checkbox label="isHoldBle" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isHoldBle">
+							<el-radio label="1">是</el-radio>
+							<el-radio label="0">否</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="开启串口" prop="isHoldUart">
+						<el-checkbox label="isHoldUart" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isHoldUart">
+							<el-radio label="1">是</el-radio>
+							<el-radio label="0">否</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+					<el-form-item label="距离差偏(mm)" prop="distanceDiffBias">
+						<el-checkbox label="distanceDiffBias" v-bind:class="{isHide:form.action=='add'}">
+						<el-input-number v-model="form.distanceDiffBias" :step="10" :min="0"></el-input-number>
+						</el-checkbox>
+					</el-form-item>
+					<el-form-item label="距离报警(mm)" prop="alterDistance" class="cooll">
+						<el-checkbox label="alterMinDistance@alterMaxDistance" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" :step='10' v-model="form.alterMinDistance" placeholder="MinDistance" auto-complete="off"></el-input>
+						<el-input type="number" :step='10' v-model="form.alterMaxDistance" placeholder="MaxDistance" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="运动传感器模式" prop="motionSensorMode">
+						<el-checkbox label="motionSensorMode" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.motionSensorMode" placeholder="请选择">
+							<el-option v-for="(val, key) in motionSensorModesDef" :key="key" :label="val" :value="key">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					</el-checkbox-group>
+					
+					<div v-show="form.action=='updateMore'|| form.action=='update'">
+						<div style="clear:both; text-align: center">
+							<el-button type="warning" @click="setTag" size="small" :loading="tagSetBtnDisable">~~setting~~</el-button>
+						</div>
+					</div>
+			</el-tab-pane>
+
+			<el-tab-pane label="~~transmitSet~~">
+					<el-form-item label="频道" prop="channel">
+							<el-select v-model="form.channel" placeholder="请选择">
+								<el-option v-for="item in channelType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+	
+						<el-form-item label="~~frameType~~" prop="frameType">
+							<el-select v-model="form.frameType" placeholder="~~select~~">
+								<el-option v-for="item in frameTypeType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			
+						<el-form-item label="crc" prop="crc">
+							<el-input-number v-model="form.crc" :step="1" :min="0"></el-input-number>
+						</el-form-item>
+		
+						<el-form-item label="~~dataRate~~" prop="dataRate">
+							<el-select v-model="form.dataRate" placeholder="~~select~~">
+								<el-option v-for="item in dataRateType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			
+						<el-form-item label="~~pacSize~~" prop="pacSize">
+							<el-select v-model="form.pacSize" placeholder="~~select~~">
+								<el-option v-for="item in pacSizeType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			
+						<el-form-item label="pulseFrequency" prop="pulseFrequency">
+							<el-select v-model="form.pulseFrequency" placeholder="~~select~~">
+								<el-option v-for="item in pulseFrequencyType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			
+			
+						<el-form-item label="~~preambleCode~~" prop="preambleCode">
+							<el-select v-model="form.preambleCode" placeholder="~~select~~">
+								<el-option v-for="item in preambleCodeType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			
+			
+						<el-form-item label="~~preambleLength~~" prop="preambleLength">
+							<el-select v-model="form.preambleLength" placeholder="~~select~~">
+								<el-option v-for="item in preambleLengthType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			
+						<el-form-item label="smartPower" prop="smartPower">
+							<el-select v-model="form.smartPower" placeholder="~~select~~">
+								<el-option v-for="item in smartPowerType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="frameCheck" prop="frameCheck">
+							<el-select v-model="form.frameCheck" placeholder="~~select~~">
+								<el-option v-for="item in frameCheckType" :key="item.code" :label="item.cname" :value="item.code">
+								</el-option>
+							</el-select>
+						</el-form-item>
+			</el-tab-pane>
+			</el-tabs>
+			</el-form>
+
+		</el-dialog>
+
+		<el-dialog :title="qrcode.title" :visible.sync="qrcode.visible" class="phone_b">
+			<div style="text-align:center;">
+
+				<a :href="qrcode.value_2d" target="_blank">
+					<div>{{qrcode.value_2d}}</div>
+					<qrcode :value="qrcode.value_2d" tag="img" :options="{ size: 200}" style="margin:10px"></qrcode></a>
+
+				<a :href="qrcode.value_3d" target="_blank">
+					<div>{{qrcode.value_3d}}</div>
+					<qrcode :value="qrcode.value_3d" tag="img" :options="{ size: 200}" style="margin:10px"></qrcode></a>
+
+			</div>
+		</el-dialog>
+
+
+
+		<el-dialog :title="cfForm.title" :visible.sync="cfFormVisible" width="80%" id='cfForm' class="phone_b">
+			<el-form :inline="true" :model="cfForm" ref="cfForm" class="demo-form-inline" label-width="300px">
+				<ul>
+					<li>
+						<el-form-item label="KEY">
+							<el-select v-model="cfForm.key" filterable="" placeholder="~~select~~" allow-create="" default-first-option="" @change="showDes">
+								<el-option v-for="item in filterCfconf" :key="item.key" :label="item.key" :value="item.key">
+									<span style="float: left">{{ item.key }}</span>
+									<span style="float: right; color: #8492a6; font-size: 13px">{{ item.des }}</span>
+								</el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="VALUE">
+							<el-input v-model="cfForm.value" placeholder="value"></el-input>
+						</el-form-item>
+						<el-form-item label="~~description~~">
+							<el-input v-model="cfForm.desc" placeholder="~~descriptionPla~~"></el-input>
+						</el-form-item>
+						<el-form-item class="cfBtn">
+							<el-button @click="addRow">+</el-button>
+						</el-form-item>
+					</li>
+					<li v-for="item in cfForm.cfg">
+						<el-form-item label="KEY">
+							<el-select v-model="item.key" filterable="" placeholder="~~select~~" allow-create="" default-first-option="" @change="showNewItemDes(item)">
+								<el-option v-for="i in filterCfconf" :key="i.key" :label="i.key" :value="i.key">
+									<span style="float: left">{{ i.key }}</span>
+									<span style="float: right; color: #8492a6; font-size: 13px">{{ i.des }}</span>
+								</el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="VALUE">
+							<el-input v-model="item.value" placeholder="value"></el-input>
+						</el-form-item>
+						<el-form-item label="~~description~~">
+							<el-input v-model="item.desc" placeholder="~~descriptionPla~~"></el-input>
+						</el-form-item>
+						<el-form-item class="cfBtn">
+							<el-button @click="removeRow(item)">-</el-button>
+						</el-form-item>
+					</li>
+					<li>
+						<el-form-item id="subCf">
+							<el-button type="primary" @click="cfSubmit('cfForm','super/tag/updateCfg/')">~~submit~~</el-button>
+						</el-form-item>
+					</li>
+				</ul>
+
+			</el-form>
+		</el-dialog>
+	</div>
+<footer>
+
+	<script type="text/javascript" src="../cfg/method.js"></script>
+	<script type="text/javascript" src="../cfg/tagConf.js"></script>
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

@@ -1,0 +1,53 @@
+.el-form-item__content {
+    width: 200px;
+    margin-bottom:12px;
+}
+.el-form-item{
+    margin-bottom: 4px;
+    float: left;
+    margin-right: 20px;
+}
+.el-select {
+    width: 130px !important;
+}
+.el-input-number {
+    width: 130px;
+}
+.mac_small {
+    width:130px;
+}
+.el-radio-group {
+    width: 132px;
+}
+.el-radio-group .el-radio {
+    font-size: 12px;
+}
+.el-radio+.el-radio {
+    margin-left: 0;
+}
+.cood input{
+    width:50px;
+    padding:2px 2px;
+    margin: 0 1px;
+}
+
+.cood .el-input{
+    display: inherit;
+}
+
+.cool input{
+    width:65px;
+    padding:2px 2px;
+    margin: 0 1px;
+}
+
+.cool .el-input{
+    display: inherit;
+}
+
+.hei label {
+    height:10px;
+}
+.isHide .el-checkbox__inner {
+    display:none;
+}

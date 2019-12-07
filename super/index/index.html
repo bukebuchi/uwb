@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+	<script type="text/javascript" src="../../common/js/moment.min.js"></script>
+
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            selfHost: UBIT.selfHost,
+            imgHost: UBIT.imgHost,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+        /**
+         * 全局变量
+         */
+        
+  //       var api_token;
+  //        function API_TOKEN () {
+  //           $.ajax({
+  //               type: 'POST',
+  //               url: "http://track.ubitraq.com:8082/user/login",
+  //               contentType: "application/json;charset=utf-8",
+  //               data: JSON.stringify({"loginCode": "jiankongzhineng", "loginPwd": "jiankongzhineng"}),
+  //               dataType: "text",
+  //               success: function (result) {
+  //                   window.alert(result.toString());
+  //                   resultJSON = $.parseJSON(result.toString());
+  //                   api_token = resultJSON.entity.api_token;
+                    
+                    
+  //               },
+  //               error: function (msg) {
+  //                   window.alert(msg);
+  //               }
+  //           });
+  //       }
+
+		// API_TOKEN();
+  //       var ME = {
+  //           //访问路径
+  //           baseUrl : '/',
+  //           //请求的服务器地址
+  //           host: UBIT.host,
+  //           selfHost: UBIT.selfHost,
+  //           imgHost: UBIT.imgHost,
+  //           user: "jiangkongzhineng",
+  //           api_token: api_token,
+  //           vm: null,
+  //       };
+
+
+        if(UBIT.isPhone()){
+            window.location.href = './phone.html'
+		}
+		UBIT.initLang('index');
+		var arr  = 
+                    {
+                        "patient": "病人管理",
+                        "doctor": "医生管理"
+                        
+                    }
+                    
+        lang = Object.assign(lang,arr);
+        console.log(lang);
+	</script>
+
+	<style type="text/css">
+		  .avatar-uploader .el-upload {
+		    border: 1px dashed #d9d9d9;
+		    border-radius: 6px;
+		    cursor: pointer;
+		    position: relative;
+		    overflow: hidden;
+		  }
+		  .avatar-uploader .el-upload:hover {
+		    border-color: #20a0ff;
+		  }
+		  .avatar-uploader-icon {
+		    font-size: 28px;
+		    color: #8c939d;
+		    width: 50px;
+		    height: 50px;
+		    line-height: 50px;
+		    text-align: center;
+		  }
+		  .avatar {
+		    width: 50px;
+		    height: 50px;
+		    display: block;
+		  }
+		  .el-upload__input {
+		  	display: none !important;
+		  }
+	</style>
+
+</head>
+<body>
+	
+	<div id="app" v-cloak="">
+		<el-row class="container">
+			<el-col :span="24" class="header">
+
+				<el-row>
+					<el-col :span="16" class="logo" :class="collapsed?'logo-collapse-width':'logo-width'">
+						<a>精神病院安全管理系统</a>
+					</el-col>
+					<el-col :span="4" class="phone_a">
+						<div class="tools" @click.prevent="collapse">
+							<i class="el-icon-menu"></i>
+						</div>
+					</el-col>
+					<el-col :span="8" class="userinfo">
+						<el-dropdown trigger="hover">
+							<span class="el-dropdown-link userinfo-inner">
+								<img :src="photoPath">
+								{{'重庆市十一人民医院'}} ，~~welcome~~！
+							</span>
+							<el-dropdown-menu slot="dropdown" class="phone_drop">
+								<el-dropdown-item divided="" @click.native="dialogPersonVisible = true">~~modifyInfo~~</el-dropdown-item>
+								<el-dropdown-item divided="" @click.native="dialogFormVisible = true">~~modifyPassword~~</el-dropdown-item>
+								<template v-if="user && user.projectId>0 && 'super' == user.userType ">
+								<el-dropdown-item divided="" @click.native="projectManage">~~superUser~~</el-dropdown-item>
+								</template>
+
+								<el-dropdown-item divided="" v-if="enableTplatfrom && user && user.userType=='super'" @click.native="go2Tplatform">~~tplatform~~</el-dropdown-item>
+
+								<el-dropdown-item divided="" @click.native="logout">~~logout~~</el-dropdown-item>
+							</el-dropdown-menu>
+						</el-dropdown>
+					</el-col>
+				</el-row>
+			</el-col>
+			<el-col :span="24" class="main">
+				<aside :class="collapsed?'menu-collapsed':'menu-expanded'">
+
+					<el-menu :default-active="activeIndex" class="el-menu-vertical-demo" mode="vertical" theme="light" :unique-opened="uniqueOpen" :default-openeds="openedMenu" @select="handleselect" v-show="!collapsed">
+
+						<template v-for="(item,index) in menus">
+
+							<el-submenu :index="item.code" v-if="item.children">
+								<template slot="title"><i :class="item.iconCls?item.iconCls:defaultIcon"></i>{{lang[item.code]}}</template>
+								<template v-for="(item,index) in item.children">
+									<el-submenu :index="item.code" v-if="item.children">
+										<template slot="title"><i :class="item.iconCls?item.iconCls:defaultIcon"></i>{{lang[item.code]}}</template>
+										<el-menu-item v-for="child in item.children" :index="child.code" :key="child.id"><i :class="child.iconCls?child.iconCls:defaultIcon"></i>{{lang[child.code]}}</el-menu-item>
+									</el-submenu>
+									<el-menu-item v-else="" :index="item.code"><i :class="item.iconCls?item.iconCls:defaultIcon"></i>{{lang[item.code]}}</el-menu-item>
+								</template>
+
+							</el-submenu>
+							<el-menu-item v-else="" :index="item.code"><i :class="item.iconCls?item.iconCls:defaultIcon"></i>{{lang[item.code]}}</el-menu-item>
+
+						</template>
+
+					</el-menu>
+
+					<ul class="el-menu el-menu-vertical-demo collapsed" v-show="collapsed" ref="menuCollapsed">
+						<li v-for="(item,index) in menus" class="el-submenu item">
+							<template v-if="item.children">
+								<div class="el-submenu__title" style="padding-left:20px;" @mouseover="showMenu(index,true)" @mouseout="showMenu(index,false)">
+									<i :class="item.iconCls?item.iconCls:defaultIcon"></i>
+								</div>
+								<ul class="el-menu submenu" :class="'submenu-hook-'+index" @mouseover="showMenu(index,true)" @mouseout="showMenu(index,false)">
+									<li v-for="child in item.children" :key="child.id" @click="selectMenu(child.code,$event)" class="el-menu-item" style="padding-left: 40px;" class="is-active"><i :class="child.iconCls?child.iconCls:defaultIcon"></i>{{lang[child.code]}}</li>
+								</ul>
+							</template>
+							<template v-else="">
+								<li class="el-submenu">
+									<div class="el-submenu__title el-menu-item" @click="selectMenu(item.code,$event)" style="padding-left: 20px;height: 56px;line-height: 56px;padding: 0 20px;" class="is-active"><i :class="item.iconCls?item.iconCls:defaultIcon"></i></div>
+								</li>
+							</template>
+						</li>
+					</ul>
+
+				</aside>
+				<section class="content-container">
+					<div class="grid-content bg-purple-light">
+
+						<el-row>
+						<el-col :span="24" class="content-wrapper">
+
+							<el-tabs v-model="defaultNagTab" type="card" @dblclick.native="nagdbclick(this,$event)" @tab-click="nagTabClick" @tab-remove="removeTab">
+								<el-tab-pane v-for="(item, index) in nagTabs" :key="item.id" :label="lang[item.code]" :name="item.code" :closable="item.closable">
+
+									<div style="-webkit-overflow-scrolling:touch; overflow-y: scroll; ">
+									<iframe :src="item.path" frameborder="0" width="100%" :height="frameHeight" scrolling="auto" :iframeid="item.id"></iframe>
+									</div>
+
+								</el-tab-pane>
+							</el-tabs>
+
+						</el-col>
+						</el-row>
+					</div>
+				</section>
+			</el-col>
+			<!-- <el-col :span="24" class="footer"> -->
+					
+			<el-row class='footer'>
+				<el-col :span="15">
+					{{footerMsg}}
+				</el-col>
+				<el-col :span="6">
+					<span style="color:red;" v-html="timeWarning"></span>
+				</el-col>
+				<el-col :span="3">
+					<div class='footerLang'>
+						<!-- <el-select style='height:30px;border:none' placeholder="~~selectLang~~" v-model='language' @change='changeLanguage'>
+							<el-option value='zh_cn' label='~~simple~~'></el-option>
+							<el-option value='zh_tw' label='~~traditional~~'></el-option>
+							<el-option value='en' label='~~en~~'></el-option>
+						</el-select> -->
+						<select name="" id="" v-model='language' @change='changeLanguage'>
+							<option value='zh_cn'>~~simple~~</option>
+							<option value='zh_tw'>~~traditional~~</option>
+							<option value='en'>~~en~~</option>
+						</select>
+					</div>
+				</el-col>
+			</el-row>
+			<!-- </el-col> -->
+		</el-row>
+
+
+	<el-dialog title="~~modifyPassword~~" :visible.sync="dialogFormVisible" class="phone_b">
+	    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="100px" class="demo-ruleForm">
+		  		<el-form-item label="~~oldPassword~~" prop="pwd">
+		    		<el-input type="password" v-model="form.pwd" auto-complete="off"></el-input>
+			  	</el-form-item>
+		  		<el-form-item label="~~newPassword~~" prop="newPwd">
+		    		<el-input type="password" v-model="form.newPwd" auto-complete="off"></el-input>
+			  	</el-form-item>
+			 	 <el-form-item label="~~confirmPassword~~" prop="checkPwd">
+			    	<el-input type="password" v-model="form.checkPwd" auto-complete="off"></el-input>
+			  	</el-form-item>
+			  	<el-form-item>
+			   		<el-button type="primary" @click="submitForm('form')">~~submit~~</el-button>
+			    	<el-button @click="resetForm('form')">~~reset~~</el-button>
+				</el-form-item>
+		</el-form>
+
+	</el-dialog>
+
+	<el-dialog title="~~modifyInfo~~" :visible.sync="dialogPersonVisible" class="phone_b">
+	    <el-form :model="form1" :rules="modefiyPreRule" ref="form1" label-width="100px" class="demo-ruleForm">
+	    		<el-form-item label="~~code~~" prop="code">
+		    		<el-input type="text" v-model="form1.code" disabled="" auto-complete="off"></el-input>
+			  	</el-form-item>
+		  		<el-form-item label="~~cname~~" prop="cname">
+		    		<el-input type="text" v-model="form1.cname" auto-complete="off"></el-input>
+			  	</el-form-item>
+		  		<el-form-item label="~~cellphone~~" prop="cellphone">
+		    		<el-input type="tel" v-model="form1.cellphone" auto-complete="off"></el-input>
+			  	</el-form-item>
+			 	 <el-form-item label="~~email~~" prop="email">
+			    	<el-input type="email" v-model="form1.email" auto-complete="off"></el-input>
+			  	</el-form-item>
+				<el-form-item label="~~birthDate~~" prop="birthDate">
+				    <el-form-item prop="birthDate">
+				       <el-date-picker type="date" placeholder="~~selectDate~~" v-model="form1.birthDate" style="width: 30%;"></el-date-picker>
+				    </el-form-item>
+			  	</el-form-item>
+			  	<el-form-item label="~~address~~" prop="address">
+		    		<el-input type="text" v-model="form1.address" auto-complete="off"></el-input>
+			  	</el-form-item>
+			  	<el-form-item label="~~img~~" prop="img">
+			  		<el-upload ref='imgUpload' :multiple='imgUpload.multiple' name='img' :headers='imgUpload.headers' :action="imgUpload.url" :disabled='imgUpload.disabled' :auto-upload="imgUpload.auto" :on-success="handleImgUpload" :on-remove="handleRemove" list-type="picture-card" :file-list="imgUpload.imgUrl">
+			  			 <i class="el-icon-plus"></i>
+					</el-upload>
+			  	</el-form-item>
+			  	<el-form-item>
+			   		<el-button type="primary" @click="submitProfileForm('form1')">~~submit~~</el-button>
+				</el-form-item>
+		</el-form>
+
+	</el-dialog>
+
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

@@ -1,0 +1,46 @@
+/**
+ * Created by ZWT on 2018/12/22/022.
+ */
+var TAG_CONF = [
+    {
+        key:'cfg_algorithm',
+        value:'',
+        des:lang['algorithm']
+    },
+    {
+        key:'cfg_finEkf_R',
+        value:0.05,
+        des:'最终科尔曼参数，越大轨迹越平滑'
+    },
+    {
+        key:'cfg_relate_tags',
+        value:'',
+        des:lang['cfg_relate_tags']
+    },
+    {
+        key:'cfg_relate_tags_minAlertDistance',
+        value:'',
+        des:lang['cfg_relate_tags_minAlertDistance']
+    },
+    {
+        key:'cfg_relate_tags_maxAlertDistance',
+        value:'',
+        des:lang['cfg_relate_tags_maxAlertDistance']
+    },
+    {
+        key:'cfg_siren_alertType',
+        value:3,
+        des:lang['cfg_siren_alertType']
+    },
+    {
+        key:'cfg_siren_alertTime',
+        value:0,
+        des:lang['cfg_siren_alertTime']
+    },
+    {
+        key:'cfg_siren_downAnchor',
+        value:'',
+        des:lang['cfg_siren_downAnchor']
+    },
+
+]

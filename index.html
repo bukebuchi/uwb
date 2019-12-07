@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv=X-UA-Compatible content='IE=edge,chrome=1'>
+    <meta name='renderer' content='webkit'>
+    <meta name='viewport' content='width=device-width,minimum-scale=0.01,initial-scale=0.6,maximum-scale=5.0,user-scalable=no'>
+    <title>UbiTraq室内定位SaaS</title>
+    <link rel="shortcut icon" href="common/img/favicon.ico"> 
+    <script type="text/javascript" src="common/js/lib.common.min.js" ></script>
+    <script type="text/javascript" src="common/plugins/jQuery/jquery-2.2.3.min.js" ></script>
+	<script type="text/javascript" src="common/js/comm.js" ></script>
+    <script type="text/javascript" >
+    	
+    	;(function(){
+    		//如果cookie userData 不存在，则需要重新登录
+			if(UBIT.checkSession()){
+				var userData = Cookies.get('userData');
+	        	 userData = eval('(' + userData + ')');
+	        	 
+	        	 if(userData.userType=='super' && userData.projectId<1){
+                    window.location.href='super/index/';
+                }else{
+                    window.location.href='map/map2d/svg/';
+                }
+			}else {
+				window.location.href='login/index.html';
+			}
+    		
+    	})();
+    	
+    </script>
+    
+</head>
+
+</html>

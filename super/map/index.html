@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="index.css">
+	<link rel="stylesheet" href="../cfg/cfg.css">
+
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+		UBIT.initLang('map');
+	</script>
+
+	<style type="text/css">
+		 .el-upload__input {
+		  	display: none !important;
+		  }
+		  #maptoolbar a {
+		  		text-decoration: none;list-style-type: none;
+				color: #fff;
+		  }
+		 #maptoolbar  a:focus , #maptoolbar  a:hover{
+		  	outline: none;
+		  	color: #fff;
+		  	text-decoration: none;
+		  }
+
+
+	</style>
+
+</head>
+<body>
+
+	<div id="app" v-cloak="">
+
+		<div id="maptoolbar">
+			<el-button type="info" size="small" @click="mapAdd" :loading="mapAddBtnDisable">~~add~~</el-button>
+			<el-button type="warning" size="small" @click="mapUpdate">~~update~~</el-button>
+			<el-button type="danger" size="small" @click="mapDelete" :loading="mapDeleteBtnDisable">~~delete~~</el-button>
+			<el-button type="success" size="small" @click="mapLook">~~mapLook~~</el-button>
+			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('maptable', true);">~~exports~~</el-button>
+			<el-button type="info" size="small" @click="setCf">~~setMapCf~~</el-button>
+		</div>
+
+
+		<table id="maptable"></table>
+
+		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="200px" class="demo-ruleForm">
+
+				<el-form-item>
+					<span style="color:red;">~~formNote~~</span>
+				</el-form-item>
+
+				<el-form-item label="~~cname~~" prop="cname">
+			    		<el-input type="text" v-model="form.cname" auto-complete="off"></el-input>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~isActive~~" prop="isActive">
+				  	  <el-radio-group v-model="form.isActive">
+			    		<el-radio label="1">~~true~~</el-radio>
+  						<el-radio label="0">~~false~~</el-radio>
+  					  </el-radio-group>
+				  	</el-form-item>
+
+					<el-form-item label="~~sort~~" prop="sort">
+			    		<el-input-number v-model="form.sort" :step="1" :min="0"></el-input-number>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~filePath~~" prop="filePath">
+						<el-upload name='document_file' ref='imgUpload' :multiple='imgUpload.multiple' :disabled='imgUpload.disabled' :headers='imgUpload.headers' :action="imgUpload.url" :auto-upload="imgUpload.auto" :on-success="handleImgUpload" :on-remove="handleRemove" list-type="picture-card" :file-list="imgUpload.imgUrl">
+							<i class="el-icon-plus"></i>
+						</el-upload>
+					</el-form-item>
+				<el-form-item label="" prop="">
+				<template slot-scope="scope" v-if="form.pixelLength&&form.pixelLength<800||form.pixelLength>1500">
+				<span style="color:#FEB725;">~~imgNote~~</span>
+				</template>
+				</el-form-item>
+				<el-form-item label="~~pixelLength~~" prop="pixelLength">
+					<el-input type="number" v-model="form.pixelLength" :disabled="true" step='1' min="0" auto-complete="off"></el-input>
+				</el-form-item>
+
+				<el-form-item label="~~realLength~~" prop="realLength">
+					<div style="color:red">
+						~~realLengthNote~~
+					</div>
+					<el-input type="number" v-model="form.realLength" step='0.01' min="0" auto-complete="off"></el-input>
+				</el-form-item>
+
+				<el-form-item label="~~northAngle~~" prop="northAngle">
+					<div style="color:red">
+						~~northAngleNote~~
+					</div>
+					<el-input-number v-model="form.northAngle" :step="1" :min="0" :max='360'></el-input-number>
+				</el-form-item>
+
+				<el-form-item>
+					<el-button type="primary" @click="submitForm('form')" :loading="mapBtnDisable">~~submit~~</el-button>
+				</el-form-item>
+			</el-form>
+
+		</el-dialog>
+
+		<el-dialog :title="cfForm.title" :visible.sync="cfFormVisible" width="80%" id='cfForm' class="phone_b">
+			<el-form :inline="true" :model="cfForm" ref="cfForm" class="demo-form-inline" label-width="300px">
+				<ul>
+					<li>
+						<el-form-item label="KEY">
+							<el-select v-model="cfForm.key" filterable="" placeholder="~~select~~" allow-create="" default-first-option="" @change="showDes">
+								<el-option v-for="item in filterCfconf" :key="item.key" :label="item.key" :value="item.key">
+										<span style="float: left">{{ item.key }}</span>
+										<span style="float: right; color: #8492a6; font-size: 13px">{{ item.des }}</span>
+								</el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="VALUE">
+								<el-input v-model="cfForm.value" placeholder="~~cfgValue~~"></el-input>
+						</el-form-item>
+						<el-form-item label="~~desc~~">
+							<el-input v-model="cfForm.desc" placeholder="~~descPla~~"></el-input>
+						</el-form-item>
+						<el-form-item class="cfBtn">
+							<el-button @click="addRow">+</el-button>
+						</el-form-item>
+					</li>
+					<li v-for="item in cfForm.cfg">
+						<el-form-item label="KEY">
+							<el-select v-model="item.key" filterable="" placeholder="~~select~~" allow-create="" default-first-option="" @change="showNewItemDes(item)">
+								<el-option v-for="i in filterCfconf" :key="i.key" :label="i.key" :value="i.key">
+										<span style="float: left">{{ i.key }}</span>
+										<span style="float: right; color: #8492a6; font-size: 13px">{{ i.des }}</span>
+								</el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="VALUE">
+							<el-input v-model="item.value" placeholder="~~cfgValue~~"></el-input>
+						</el-form-item>
+						<el-form-item label="~~desc~~">
+							<el-input v-model="item.desc" placeholder="~~descPla~~"></el-input>
+						</el-form-item>
+						<el-form-item class="cfBtn">
+							<el-button @click="removeRow(item)">-</el-button>
+						</el-form-item>
+					</li>
+					<li>
+					<el-form-item id="subCf">
+						<el-button type="primary" @click="cfSubmit('cfForm','super/map/updateCfg/')">~~submit~~</el-button>
+					</el-form-item>
+					</li>
+				</ul>
+
+			</el-form>
+		</el-dialog>
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="../cfg/method.js"></script>
+	<script type="text/javascript" src="../cfg/mapConf.js"></script>
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

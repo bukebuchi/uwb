@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>用户管理</title>
+
+	<link rel="shortcut icon" href="../../common/img/favicon.ico">
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js" ></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js" ></script>
+	<script type="text/javascript" src="../../common/js/session-check.js" ></script>
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+
+	</script>
+
+</head>
+<body>
+	
+	<div id="app" v-cloak>
+
+		<div id="usertoolbar" >
+			<el-button type="info" size="small"  @click="userAdd" >添加</el-button>
+			<el-button type="danger" size="small"  @click="userDelete" :loading="userDeleteBtnDisable">删除</el-button>
+			<el-button type="warning" size="small"  @click="userUpdate" >修改</el-button>
+			<el-button type="danger" size="small"  @click="resetPwd">重置密码</el-button>
+			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('usertable', true);">导出</el-button>
+		</div>
+
+
+		<table id="usertable"></table>
+
+
+		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="100px" class="demo-ruleForm">
+
+					<el-form-item >
+						<span  style="color:red;">* 新用户初始密码为用户账号</span>
+					</el-form-item>
+
+			  		<el-form-item label="账号" prop="code" >
+			    		<el-input type="text" v-model="form.code" auto-complete="off"></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="姓名" prop="cname">
+			    		<el-input type="text" v-model="form.cname" auto-complete="off"></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="用户类型" prop="userType">
+			    		<el-select v-model="form.userType" placeholder="请选择">
+						    <el-option
+						      v-for="item in userType"
+						      :key="item.code"
+						      :label="item.cname"
+						      :value="item.code">
+						    </el-option>
+						 </el-select>
+				  	</el-form-item>
+				  	<el-form-item label="是否激活" prop="isActive">
+				  	  <el-radio-group v-model="form.isActive">
+			    		<el-radio label="1">是</el-radio>
+  						<el-radio label="0">否</el-radio>
+  					  </el-radio-group>
+				  	</el-form-item>
+				  	<el-form-item label="电话" prop="cellphone">
+			    		<el-input type="text" v-model="form.cellphone" auto-complete="off" ></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="邮箱" prop="email">
+			    		<el-input type="text" v-model="form.email" auto-complete="off" ></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="出生日期" prop="birthDate">
+					      <el-form-item prop="birthDate">
+					        <el-date-picker type="date" placeholder="选择日期" v-model="form.birthDate" style="width: 30%;"></el-date-picker>
+					      </el-form-item>
+				  	</el-form-item>
+				  	<el-form-item label="住址" prop="address">
+			    		<el-input type="text" v-model="form.address" auto-complete="off"></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="头像" prop="img">
+			    		<el-input type="img" v-model="form.img" auto-complete="off"></el-input>
+				  	</el-form-item>
+				  	<el-form-item label="项目" prop="projectId">
+			    		<el-select v-model="form.projectId" placeholder="请选择">
+						    <el-option
+						      v-for="item in projects"
+						      :key="item.id"
+						      :label="item.cname"
+						      :value="item.id">
+						    </el-option>
+						 </el-select>
+				  	</el-form-item>
+			  		
+				  	<el-form-item>
+				   		<el-button type="primary" @click="submitForm('form')" size="small" :loading="userBtnDisable">提交</el-button>
+					</el-form-item>
+			</el-form>
+
+		</el-dialog>
+
+
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

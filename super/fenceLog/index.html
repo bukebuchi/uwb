@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+				UBIT.initLang('fenceLog');
+	</script>
+
+</head>
+<body>
+	
+	<div id="app" v-cloak="">
+
+		<div id="fenceLogtoolbar">
+			  <el-form :model="searchform" ref="searchform" label-width="200px" class="demo-ruleForm">
+				
+				  <el-form-item label="~~timeType~~" prop="timeType" class="timeType">
+				  	  <el-radio-group v-model="searchform.timeType">
+			    		<el-radio label="in">~~in~~</el-radio>
+  						<el-radio label="out">~~out~~</el-radio>
+  					  </el-radio-group>
+				  	</el-form-item> 
+
+				  	 <div class="block el-form-item">
+					    <label class="demonstration">~~demonstration~~</label>
+					    <el-date-picker v-model="searchform.timespan" type="datetimerange" placeholder="~~demonstrationPla~~" :picker-options="pickerOptions" align="right">
+					    </el-date-picker>
+					  </div>
+
+
+					<el-form-item label="~~mapId~~" prop="mapId" class="ss">
+			    		<el-select v-model="searchform.mapId" filterable="" placeholder="~~select~~" @change="selectMap">
+						    <el-option v-for="item in maps" :key="item.id" :label="item.cname" :value="item.id">
+						    </el-option>
+						</el-select>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~fenceId~~" prop="fenceId" class="ss">
+			    		<el-select v-model="searchform.fenceId" filterable="" placeholder="~~select~~">
+						    <el-option v-for="item in selectMapFences" :key="item.id" :label="item.cname" :value="item.id">
+						    </el-option>
+						</el-select>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~tagId~~" prop="tagId" class="ss">
+			    		<el-select v-model="searchform.tagId" filterable="" placeholder="~~select~~">
+						    <el-option v-for="item in tags" :key="item.sourceId" :label="item.alias" :value="item.sourceId">
+						    </el-option>
+						</el-select>
+				  	</el-form-item>
+
+				  <el-form-item class="ss">
+				  	<el-button type="info" size="small" @click="search" :loading="fenceLogBtnDisable">~~search~~</el-button>
+				    <el-button type="danger" size="small" @click="clearTable" :loading="clearTableDisable">~~clearTable~~</el-button>
+
+				  </el-form-item>
+
+			</el-form>
+		</div>
+
+		<table id="fenceLogtable"></table>
+
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

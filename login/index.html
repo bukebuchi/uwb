@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv=X-UA-Compatible content='IE=edge,chrome=1'>
+    <meta name='renderer' content='webkit'>
+    <meta name='viewport' content='width=device-width,minimum-scale=0.01,initial-scale=0.6,maximum-scale=5.0,user-scalable=no'>
+    <title>高精度定位系统</title>
+
+    <link rel="stylesheet" type="text/css" href="../common/css/reset.css">
+    <link rel="stylesheet" href="../common/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+
+    <link rel="stylesheet" type="text/css" href="index.min.css">
+    <link rel="shortcut icon" href="../common/img/favicon.ico"> 
+    	
+</head>
+<body>
+    <div id="wrapper" >
+        <div class="bg"></div>
+        <div class="main" v-cloak>
+            <img class="logo" src="img/logo.png">
+            <div class="login_box" >
+                <form>
+
+                    <div class="bar">
+                        <span class="bar_name">
+                            <img src="img/humem.png" alt="">
+                        </span>
+                        <!--<span class="bar_line"></span>-->
+                        <input style="height: 42px;width: 276px;" @input="validate('login','loginCode','code')" type="text" class="bar_frame bar_" name="loginCode" v-model="login.edit.loginCode" v-on:keyup.13="loginIn" placeholder="请输入用户名">
+                        <!--<label class="bar_text" for="loginCode">{{login.validate.code}}</label>-->
+                    </div>
+
+                    <div class="bar">
+                        <span class="bar_name">
+                            <img src="img/number.png" alt="">
+                        </span>
+                        <input style="height: 42px;width: 276px;" @input="validate('login','loginPwd','pwd')" type="password" class="bar_frame" name="loginPwd" v-model="login.edit.loginPwd" v-on:keyup.13="loginIn" placeholder="请输入密码">
+                    </div>
+
+					<div v-bind:style="{ color: tip.color,visibility: tip.show}">{{tip.msg}}</div>
+
+                    <label>
+                        <input class="check" v-model="login.checkStatus" type="checkbox">
+                        <span class="check_text">记住密码</span>
+                    </label>
+
+                    <!--<span class="check_text_pwd"><a href="pwd.html">忘记密码？</a></span>-->
+
+                    <el-button class="btn" @click.prevent="loginIn" :loading="isLoging">登陆</el-button>
+
+                </form>
+            </div>
+            
+        </div>
+    </div>
+    <footer class="footer">
+        <script type="text/javascript" src="../common/bin/super.common.min.js" defer></script>
+      	<script type="text/javascript" src="../common/js/comm.js" defer></script>
+        <script type="text/javascript" src="index.js" defer></script>
+    </footer>
+</body>
+</html>

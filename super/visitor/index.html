@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+		UBIT.initLang('visitor');
+	</script>
+
+	<style>
+
+		.visitorAbout .el-row {
+			margin-bottom: 14px;
+		}
+
+	</style>
+</head>
+<body>
+
+	<div id="app" v-cloak="">
+		<div class="form_visitor_content clearFloat">
+			<div v-show="isShowAll!='show'" class="visitorAbout clearFloat">
+
+				<el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="80px" class="demo-ruleForm visitor">
+					<el-row :gutter="2" class="row-bg">
+						<el-col :span="6" class="item">
+							<el-form-item label="~~tagCode~~" prop="tagCode">
+								<el-input type="text" v-model="form.tagCode" placeholder="~~tagCodePla~~" autofocus="" :maxlength="8" @keyup.enter.native="getDetail"></el-input>
+							</el-form-item>
+						</el-col>
+						<!--<el-col :span="4" class="item">-->
+							<!--<el-form-item label="标签ID" prop="tagId" >-->
+								<!--<el-input type="text" v-model="form.tagId" disabled></el-input>-->
+							<!--</el-form-item>-->
+						<!--</el-col>-->
+						<!--<el-col :span="5" class="item">-->
+							<!--<el-form-item label="标签别名" prop="tagAlias" >-->
+								<!--<el-input type="text" v-model="form.tagAlias" disabled></el-input>-->
+							<!--</el-form-item>-->
+						<!--</el-col>-->
+						<!--<el-col :span="5" class="item">-->
+							<!--<el-form-item label="标签mac" prop="tagMac" >-->
+								<!--<el-input type="text" v-model="form.tagMac" disabled></el-input>-->
+							<!--</el-form-item>-->
+						<!--</el-col>-->
+
+						<!--<el-col :span="4" class="item">-->
+						<!--<el-form-item label="标签状态" prop="status" >-->
+							<!--<el-input type="text" v-model="form.status" disabled></el-input>-->
+						<!--</el-form-item>-->
+						<!--</el-col>-->
+
+						<el-col :span="6" class="item">
+							<el-form-item label="~~cname~~" prop="cname">
+								<el-input type="text" v-model="form.cname" :maxlength="32"></el-input>
+							</el-form-item>
+						</el-col>
+
+
+						<el-col :span="6" class="item">
+							<el-form-item label="~~phone~~" prop="phone">
+								<el-input type="text" v-model="form.phone" :maxlength="32"></el-input>
+							</el-form-item>
+						</el-col>
+
+						<el-col :span="6" class="item">
+							<el-form-item label="~~identification~~" prop="identification">
+								<el-input type="text" v-model="form.identification" :maxlength="20"></el-input>
+							</el-form-item>
+						</el-col>
+
+
+					</el-row>
+					<el-row :gutter="2" class="row-bg">
+
+
+						<el-col :span="6" class="item">
+							<el-form-item label="~~company~~" prop="company">
+								<el-input type="text" v-model="form.company" :maxlength="50"></el-input>
+							</el-form-item>
+						</el-col>
+
+						<el-col :span="6" class="item">
+							<el-form-item label="~~responser~~" prop="responser">
+								<el-input type="text" v-model="form.responser" :maxlength="20"></el-input>
+							</el-form-item>
+						</el-col>
+
+						<el-col :span="12" class="item">
+							<el-form-item label="~~memo~~" prop="memo">
+								<el-input type="text" v-model="form.memo" :maxlength="250"></el-input>
+							</el-form-item>
+						</el-col>
+
+					</el-row>
+					<el-row :gutter="2" class="row-bg">
+
+						<el-col :span="24">
+							<el-form-item class="visitor_style" v-show="howTo=='binding'">
+								<el-button type="primary" size="small" @click="submitForm('form','add')" :loading="visitorBtnDisable">~~add~~</el-button>
+							</el-form-item>
+
+							<el-form-item class="visitor_style" v-show="howTo=='closed'">
+								<el-button type="primary" size="small" @click="submitForm('form','update')" :loading="visitorBtnDisable">~~submit~~</el-button>
+								<el-button type="danger" size="small" @click="submitForm('form','unReg')" :loading="visitorBtnDisable">~~unReg~~</el-button>
+								<el-button type="info" size="small" @click="cancelChange" :loading="visitorBtnDisable">~~cancelChange~~</el-button>
+							</el-form-item>
+						</el-col>
+
+					</el-row>
+
+				</el-form>
+
+			</div>
+		</div>
+
+
+		<div id="visitortoolbar">
+				<el-button type="warning" size="small" @click="visitorUpdate" v-show="isShowAll!='show'">~~update~~</el-button>
+				<el-button type="danger" size="small" @click="visitorDelete" :loading="visitorDeleteBtnDisable" v-show="isShowAll!='show'">~~delete~~</el-button>
+				<el-button type="info" size="small" @click="visitorShowAll" :loading="visitorAddBtnDisable" v-show="isShowAll=='show'">~~showAll~~</el-button>
+		</div>
+
+
+		<!--<div class="visitor_log_btns clearFloat">-->
+			<!--<el-form :model="searchform" :inline="true" ref="searchform" label-width="200px" class="demo-ruleForm">-->
+				<!--<div class="block el-form-item mar log_first">-->
+					<!--<label class="demonstration">时间范围</label>-->
+					<!--<el-date-picker-->
+							<!--v-model="searchform.timespan"-->
+							<!--type="datetimerange"-->
+							<!--placeholder="选择时间范围"-->
+							<!--align="right">-->
+					<!--</el-date-picker>-->
+				<!--</div>-->
+				<!--&lt;!&ndash;<div class="log_right">&ndash;&gt;-->
+					<!--&lt;!&ndash;&lt;!&ndash;<el-form-item label="关键词" prop="searchValue"  class="ss">&ndash;&gt;&ndash;&gt;-->
+					<!--&lt;!&ndash;&lt;!&ndash;<el-input type="text" v-model="searchform.searchValue" placeholder="查询拜访记录" @keyup.enter.native="getLog"></el-input>&ndash;&gt;&ndash;&gt;-->
+				<!--&lt;!&ndash;&lt;!&ndash;</el-form-item>&ndash;&gt;&ndash;&gt;-->
+					<!--&lt;!&ndash;<el-form-item >&ndash;&gt;-->
+					<!--&lt;!&ndash;&lt;!&ndash;<el-button type="info" size="small" @click="search" :loading="sosBtnDisable">查询</el-button>&ndash;&gt;&ndash;&gt;-->
+					<!--&lt;!&ndash;<el-button type="info" size="small"  @click="getLog" :loading="visitorSearchBtnDisable">记录查询</el-button>&ndash;&gt;-->
+				<!--&lt;!&ndash;</el-form-item>&ndash;&gt;-->
+				<!--&lt;!&ndash;</div>&ndash;&gt;-->
+			<!--</el-form>-->
+		<!--</div>-->
+
+
+		<table id="visitorTable"></table>
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

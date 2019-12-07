@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var util = UBIT;
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            iconPath: UBIT.iconPath,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+        };
+		UBIT.initLang('fence');
+	</script>
+
+</head>
+<body>
+	
+	<div id="app" v-cloak="">
+
+		<div id="fencetoolbar">
+			<!--<button type="button" class="btn btn-info" @click="fenceAdd">~~add~~</button>-->
+			<el-button type="warning" size="small" @click="fenceUpdate">~~update~~</el-button>
+			<el-button type="danger" size="small" @click="fenceDelete" :loading="fenceDeleteBtnDisable">~~delete~~</el-button>
+			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('fencetable', true);">~~exports~~</el-button>
+		</div>
+
+
+		<table id="fencetable"></table>
+
+		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="200px" class="demo-ruleForm">
+
+				<el-form-item>
+					<span style="color:red;">~~note~~</span>
+				</el-form-item>
+
+				  	<el-form-item label="~~cname~~" prop="cname">
+			    		<el-input type="text" v-model="form.cname" auto-complete="off"></el-input>
+				  	</el-form-item>
+						
+					<el-form-item label="~~mapId~~" prop="mapId">
+			    		<el-select v-model="form.mapId" filterable="" placeholder="~~select~~">
+						    <el-option v-for="item in maps" :key="item.id" :label="item.cname" :value="item.id+''">
+						    </el-option>
+						</el-select>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~ftypeId~~" prop="ftypeId">
+
+						<el-select v-model="form.ftypeId" filterable="" placeholder="~~select~~">
+							<el-option v-for="item in fenceTypes" :key="item.id" :label="item.cname" :value="item.id+''">
+							</el-option>
+						</el-select>
+				  	</el-form-item>
+
+					<el-form-item label="~~trif~~" prop="trif">
+						<el-radio-group v-model="form.trif">
+							<el-radio label="i">~~trifI~~</el-radio>
+							<el-radio label="o">~~trifO~~</el-radio>
+							<el-radio label="io">~~trifIo~~</el-radio>
+							<el-radio label="in">~~trifIn~~</el-radio>
+						</el-radio-group>
+					</el-form-item>
+
+					<el-form-item label="~~isRecord~~" prop="isRecord">
+						<el-radio-group v-model="form.isRecord">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+					</el-form-item>
+
+					<el-form-item label="~~isEmail~~" prop="isEmail">
+						<el-radio-group v-model="form.isEmail">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+					</el-form-item>
+
+					<el-form-item label="~~isSMS~~" prop="isSMS">
+						<el-radio-group v-model="form.isSMS">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+					</el-form-item>
+
+				  	<el-form-item label="~~points~~" prop="points">
+			    		<el-input type="text" v-model="form.points" auto-complete="off"></el-input>
+				  	</el-form-item>
+
+				  	<el-form-item label="~~isActive~~" prop="isActive">
+				  	  <el-radio-group v-model="form.isActive">
+			    		<el-radio label="1">~~true~~</el-radio>
+  						<el-radio label="0">~~false~~</el-radio>
+  					  </el-radio-group>
+				  	</el-form-item>
+	
+				  	<el-form-item>
+				   		<el-button type="primary" @click="submitForm('form')" :loading="fenceBtnDisable" size="small">~~submit~~</el-button>
+					</el-form-item>
+			</el-form>
+
+		</el-dialog>
+
+
+	</div>
+
+
+<footer>
+
+	<script type="text/javascript" src="index.js"></script>
+
+</footer>
+
+</body>
+</html>
+

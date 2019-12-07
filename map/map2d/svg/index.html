@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content='IE=edge,chrome=1'>
+	<meta name='renderer' content='webkit'>
+	<meta name="viewport" content="width=device-width, initial-scale=0.9,maximum-scale=0.9, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<title>~~title~~</title>
+	
+	<!-- Bootstrap 3.3.7 -->
+  	<link rel="stylesheet" href="../../../common/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../common/plugins/jqx/styles/jqx.base.css">
+	<link type="text/css" rel="stylesheet" href="../../../common/plugins/jQuery/jquery.qtip.css">
+    <link type="text/css" rel="stylesheet" href="../../../common/plugins/jQueryUI/jquery-ui.min.css">
+	<link rel="stylesheet" href="../../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="attendance/attendance.css">
+	<link rel="stylesheet" type="text/css" href="../index.min.css">
+	<link rel="stylesheet" type="text/css" href="../ui-1.2.css">
+	<link rel="stylesheet" type="text/css" href="../change_style.css">
+	
+</head>
+
+<body>
+		<div class="container" id="allHandle" v-cloak="">
+			<div v-show="scanActive">
+				<!--<header class="header"></header>-->
+				<div class="header" v-show="!fullScreen" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="~~loading~~">
+					<div class="logo">
+						<img src="../img/images/logo.png" alt="">
+					</div>
+					<div class="mapName">
+						<div class="currentMap"><b>{{currentUnderStyle?currentUnderStyle.name:''}}</b><i class="el-icon-arrow-down el-icon&#45;&#45;right"></i></div>
+						<ul class="map_meanus">
+							<li v-for="(item, i) in underStyles" @click="changeUnderStyle(i,item.id)">{{item.name}}</li>
+						</ul>
+					</div>
+					<!--~~mapName~~-->
+				    <div class="mapName">
+						<div class="currentMap"><b>{{currentMap?currentMap.cname:''}}</b><i class="el-icon-arrow-down el-icon&#45;&#45;right"></i></div>
+						<ul class="map_meanus">
+							<li v-for="item in map.data" @click="changeMap(item.id)">{{item.cname}}</li>
+						</ul>
+				    </div>
+
+
+					<div class="logoIn">
+						<!--<a href="javascript:void(0);" onclick="cssInit()">-->
+						<div class="portrait">
+							<img src="../img/user.png" alt="">
+						</div>
+						<!--</a>-->
+						<div style="margin-right: 12px" id="logoIn_name"></div>
+						<div class="glyphicon glyphicon-triangle-bottom" style="line-height: 55px;"></div>
+
+						<div class="ddd">
+						<div class="logoIn_table">
+							<div @click="qrcode.visible = true">
+								<span class="glyphicon glyphicon-qrcode enter_img"></span>
+								&nbsp;~~qrcode~~&nbsp;&nbsp;&nbsp;
+							</div>
+							<div v-show="enable3d" @click="entry3DMap">
+								<span class="glyphicon glyphicon-inbox enter_img"></span>
+								&nbsp~~3dMap~~
+							</div>
+							<div @click="projectManage">
+								<span class="glyphicon glyphicon-log-in enter_img"></span>
+								&nbsp~~sqlIn~~
+							</div>
+							<div @click="adminManage" v-if="user && user.userType=='super'">
+								<span class="glyphicon glyphicon-log-in enter_img"></span>
+								&nbsp~~superUser~~
+							</div>
+
+							<div @click="go2Tplatform" v-if="enableTplatfrom">
+								<span class="glyphicon glyphicon-hourglass"></span>
+								&nbsp~~tplatform~~
+							</div>
+							<div @click="adjustAnchor.dialog=true" v-if="isSuper">
+								<span class="glyphicon glyphicon-sound-dolby"></span>
+								&nbsp~~anchorAdjusting~~
+							</div>
+							<div @click="exit">
+								<span class="glyphicon glyphicon-log-out enter_img"></span>
+								&nbsp~~logout~~
+							</div>
+						</div>
+						</div>
+					</div>
+
+					<el-tooltip class="item" effect="dark" content="~~totalAnchorNumber~~" placement="left">
+						<div class="total_anchor">
+							<span class="total_anchor_wrap">
+								<img src="../img/images/station_ubi.png" alt="">
+							</span>
+
+								<span class="total_anchor_num">{{anchor.data.length}}</span>
+						</div>
+					</el-tooltip>
+
+					<el-tooltip class="item" effect="dark" content="~~totalTagNumber~~" placement="left">
+						<div class="total_tag">
+							<span class="total_tag_wrap">
+								<img src="../img/images/label_ubi.png" alt="">
+							</span>
+
+								<span class="total_tag_num">{{tag.data.length}}</span>
+							<div class="total_tag_table"></div>
+						</div>
+					</el-tooltip>
+				</div>
+
+				<div class="main clearfix">
+					<aside id="right_menus" class="m-right" v-show="!fullScreen">
+						<div class="menu clearfix" @click="disabled = !disabled">
+							<!--<img src="../img/images/menu_click_ubi.png" alt="">-->
+						</div>
+
+						<div id="right_menus_items">
+							<div class="tag one_menu_item">
+								<div class="tag_wrap" onclick="togMenus(this);">
+									<div class="tag_coin">
+										<el-tooltip class="item" :disabled="!disabled" effect="dark" content="~~tag~~" placement="right">
+											<div class="tag_coin_wrap">
+												<!--<img src="../img/images/label_ubi.png" alt="">-->
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="tag_text">~~tag~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+										<div class="tagTool">
+												<div class="tagSearch">
+													<input type="text" aria-placeholder="~~search~~" v-model="tag.searchVal" @keyup.enter="searchData('tag')" autofocus=""><button>~~search~~</button>
+												</div>
+												<div id="isShowActiveTag">
+													<el-checkbox v-model="switchData.isShowActiveTag" style="color:white;" @change="switchFunc('isShowActiveTag', $event)">~~showActiveTag~~</el-checkbox>
+												</div>
+										</div>
+
+										<div style="margin-top: 1px" v-show="!switchData.isShowActiveTag">
+											<el-checkbox-group v-model="switchData.isShowTagTypes" size="mini">
+												<el-checkbox-button v-for="item in tagType.data" :label="item.id" :key="item.id">{{item.cname}}</el-checkbox-button>
+											</el-checkbox-group>
+										</div>
+
+										<div style="margin-top: 1px" v-show="!switchData.isShowActiveTag">
+											<el-checkbox-group v-model="switchData.isShowTagCats" size="mini">
+												<el-checkbox-button v-for="item in tagCat.data" :label="item.id" :key="item.id">{{item.cname}}</el-checkbox-button>
+											</el-checkbox-group>
+										</div>
+
+									<template>
+											<!-- :data="tag.data" -->
+										<el-table ref="tagMultipleTable" :data="tag.searchVal?tag.filterData:tag.data" border="" max-height="600" tooltip-effect="dark" style="width: 100%" @header-click="tagTableHeaderClick" @row-dblclick="editItem">
+
+											<el-table-column label="~~view~~" width="80">
+												<template scope="scope">
+													<!--<el-checkbox  v-model="scope.row.isShow" :checkbox="scope.row.isShow" @change="handleCheckChange('tag',scope.row)"></el-checkbox>-->
+													<el-checkbox v-model="scope.row.isShow" :checkbox="scope.row.isShow" @change="selectOne('tag',scope.row)"></el-checkbox>
+												</template>
+											</el-table-column>
+
+                                        <el-table-column prop="alias" label="~~name2~~" sortable="" width="85">
+                                        </el-table-column>
+
+                                        <el-table-column prop="code" label="~~code2~~" sortable="" width="120">
+                                        </el-table-column>
+
+
+											<el-table-column prop="powerLevel" sortable="" label="~~electricity~~" :formatter="tagPowerFormatter" width="85">
+											</el-table-column>
+
+                                        <el-table-column prop="type" label="~~type2~~" :sort-method="sortGroup" sortable="" width="85">
+                                            <template scope="scope">{{ scope.row.type?scope.row.type.cname:'' }}</template>
+                                        </el-table-column>
+
+                                        <el-table-column prop="cat" label="~~gorup2~~" sortable="" :sort-method="catGroup" :formatter="tagCatFormatter" width="85">
+                                        </el-table-column>
+
+
+
+                                        <!--<el-table-column-->
+                                                <!--prop="mapName"-->
+                                                <!--label="~~currentMapId~~"-->
+                                                <!--width="220"-->
+                                                <!--sortable-->
+                                                <!--show-overflow-tooltip>-->
+                                        <!--</el-table-column>-->
+
+                                        <!--<el-table-column-->
+                                                <!--prop="lastPosTime"-->
+                                                <!--sortable-->
+                                                <!--label="~~lastPosTime~~"-->
+                                                <!--:formatter="tagLastPosTimeFormatter"-->
+                                                <!--width="185"-->
+                                        <!--&gt;-->
+                                        <!--</el-table-column>-->
+
+                                    </el-table>
+                                </template>
+
+                            </div>
+                        	</div>
+                        	<div class="anchor one_menu_item">
+                            <div class="anchor_wrap" onclick="togMenus(this);">
+                                <div class="anchor_coin">
+                                    <el-tooltip class="item" :disabled="!disabled" effect="dark" content="~~anchor~~" placement="right">
+                                        <div class="anchor_coin_wrap">
+                                            <!--<img src="../img/images/station_ubi.png" alt="">-->
+											</div>
+										</el-tooltip>
+									</div>
+									<div class="anchor_text">~~anchor~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+										<div class="anchorTool">
+												<div class="anchorSearch">
+													<input type="text" aria-placeholder="~~search~~" v-model="anchor.searchVal" @keyup.enter="searchData('anchor')"><button>~~search~~</button>
+												</div>
+										</div>
+									<template>
+										<el-table ref="anchorMultipleTable" :data="anchor.searchVal?anchor.filterData:anchor.data" border="" max-height="600" tooltip-effect="dark" style="width: 100%" @header-click="anchorTableHeaderClick" @row-dblclick="editItem">
+
+											<el-table-column label="~~view~~" width="80">
+												<template scope="scope">
+													<el-checkbox v-model="scope.row.isShow" @change="handleCheckChange('anchor',scope.row)"></el-checkbox>
+												</template>
+											</el-table-column>
+
+											<el-table-column prop="alias" label="~~name2~~" sortable="" width="90">
+											</el-table-column>
+
+											<el-table-column prop="code" label="~~code2~~" sortable="" width="120">
+											</el-table-column>
+
+											<el-table-column prop="isMaster" label="~~type2~~" sortable="" width="90">
+												<template scope="scope">{{ scope.row.isMaster>0?'~~masterAnchor~~':'~~notMasterAnchor~~' }}</template>
+											</el-table-column>
+
+											<el-table-column prop="x" label="X">
+												<template scope="scope">{{ ((scope.row.x-currentMap.origin_x)/100).toFixed(2) }}</template>
+											</el-table-column>
+
+											<el-table-column prop="y" label="Y">
+												<template scope="scope">{{ ((scope.row.y-currentMap.origin_y)/100).toFixed(2) }}</template>
+											</el-table-column>
+
+											<el-table-column prop="z" label="Z">
+												<template scope="scope">{{ ((scope.row.z-currentMap.origin_z)/100).toFixed(2) }}</template>
+											</el-table-column>
+
+										</el-table>
+									</template>
+
+
+								</div>
+							</div>
+							<!-- ~~fence2~~ -->
+							<div class="fence one_menu_item">
+								<div class="fence_wrap" onclick="togMenus(this);">
+									<div class="fence_coin">
+										<el-tooltip class="item" effect="dark" :disabled="!disabled" content="~~fence~~" placement="right">
+											<div class="fence_coin_wrap">
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="fence_text">~~fence~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+									<template>
+										<el-table ref="fenceMultipleTable" :data="fence.fenceTableData" border="" max-height="600" tooltip-effect="dark" @row-dblclick="fenceEdit" style="width: 100%">
+											<el-table-column label="~~operating~~" width="125">
+												<template scope="scope">
+													<button class="btn edit-btn table-btn" :disabled="!power" @click="fenceEdit(scope.row,$event)">~~edit~~</button>
+
+													<button class="btn del-btn table-btn" :disabled="!power" @click="fenceDelete($event, scope.row.id,'fence')">~~delete~~</button>
+												</template>
+											</el-table-column>
+											<!-- <el-table-column label='~~name~~' width='85'>
+												<template scope='scope'>
+													<button class="btn edit-btn table-btn" :disabled="scope.row.ftypeId !== 1"
+															@click="fenceAttendance($event, scope.row,'fence')"
+													>~~name~~</button>
+												</template>
+											</el-table-column> -->
+											<el-table-column prop="cname" label="~~name2~~" sortable="" width="85">
+											</el-table-column>
+
+											<el-table-column prop="ftype" label="~~type2~~" sortable="" width="90">
+											</el-table-column>
+
+											<el-table-column prop="trif" label="~~triggeringCondition~~" sortable="" width="90">
+												<template scope="scope">{{ 
+													scope.row.trif == 'io'?'~~triggeringInOut~~':
+													(scope.row.trif == 'i'?'~~triggeringIn~~':(
+														scope.row.trif == 'o'?'~~triggeringOut~~':'~~triggeringInner~~'
+													) ) 
+												}}</template>
+											</el-table-column>
+											<el-table-column prop="tipInterval" label="~~tipInterval~~" sortable="" width="90">
+											</el-table-column>
+											<el-table-column prop='tagCatCname' label='~~tagGroup~~' sortable="" width='110' :formatter='formatTagCat'>
+												<!-- <template scope="scope">
+													{{scope.row.tagCatCname}}
+												</template> -->
+											</el-table-column>
+											<el-table-column prop="isRecord" label="~~isRecord~~" sortable="" width="90">
+												<template scope="scope">{{ scope.row.isRecord>0?'~~true~~':'~~false~~' }}</template>
+											</el-table-column>
+
+											<el-table-column prop="isEmail" label="~~isEamil~~" sortable="" width="110">
+												<template scope="scope">{{ scope.row.isEmail>0?'~~true~~':'~~false~~' }}</template>
+											</el-table-column>
+
+											<el-table-column prop="isSMS" label="~~isSms~~" sortable="" width="110">
+												<template scope="scope">{{ scope.row.isSMS>0?'~~true~~':'~~false~~' }}</template>
+											</el-table-column>
+
+											<!--<el-table-column-->
+													<!--prop="trif_tags"-->
+													<!--label="~~triggeringTag~~"-->
+													<!--class-name="hideCol"-->
+													<!--sortable-->
+													<!--width="0">-->
+											<!--</el-table-column>-->
+
+										</el-table>
+									</template>
+									<button @click.prevent="setAreaByType($event,'fence','edit')" class="btn draw_fence">~~drawFence2~~</button>
+
+									<div class="fence_from_wrap">
+										<form class="nodes-form form-edit" v-show="fence.edit.visible">
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~name2~~</span>
+												<span class='block col_7'>
+													<input type="text" class="fence_from_wrap_input" :disabled="!power" v-model="fence.edit.cname">
+												</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~type2~~</span>
+												<span class='block col_7'>
+													<select class="form-control fence_from_wrap-select" v-model="fence.edit.ftypeId">
+														<option v-for="(item,index) in fenceType.drawFenceData" :value="item.id" :style="{color: item.color}">
+															{{item.cname}}
+														</option>
+													</select>
+												</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~triggeringCondition~~</span>
+												<span class='block col_7'>
+													<select class="form-control fence_from_wrap-select_trif" v-model="fence.edit.trif">
+														<option v-for="(item,index) in fence.trif" :value="item.id">
+															{{item.cname}}
+														</option>
+													</select>
+												</span>
+											</span>
+
+											<span class='fence_from_wrap_row block' v-show="fence.edit.trif=='in'">
+													<span class='block col_3'>~~tipInterval~~</span>
+													<span class='block col_7'>
+														<input type="text" class="fence_from_wrap_input" :disabled="!power" v-model="fence.edit.tipInterval   " placeholder="~~unit~~">
+													</span>
+												</span>
+
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~selectSiren~~</span>
+												<span class='block col_7'>
+													<select class="form-control fence_from_wrap-select_trif" v-model="fence.edit.siren" placeholder="~~selectSiren~~">
+														<option v-for="(item,index) in this.tag.sirens" :value="item.code">
+															{{item.alias}}
+														</option>
+													</select>
+												</span>
+											</span>
+
+											<span class='fence_from_wrap_row block'>
+											<span class='fence_from_wrap_row block '>
+												<span class='block col_3 col_3_tagCat'>~~selectTagCat~~</span>
+												<span class='block col_7 fence_tagCat'>
+													<el-select name="" popper-class='fence_from_wrap-select_tagCat_popper' size='small' class="fence_from_wrap-select_tagCat special_block" v-model='fence.edit.tagCat' multiple='multiple' placeholder="~~selectTagCat~~">
+														<el-option v-for="(item,index) in this.tagCat.data" :key='index' :style="'color:' + item.color" :label="item.cname" :value="item.id">{{item.cname}}</el-option>
+													</el-select>
+												</span>
+											</span>
+
+
+											<span class='fence_from_wrap_row block fence_validity_style'>
+												<span class='block col_3 validity_show'>~~validity~~</span>
+												<span class='block col_7 fence_validity validity_show'>
+													<!-- <el-date-picker
+													v-model="fence.baseValidity"
+													size='mini'
+													type="datetimerange"
+													:picker-options="fence.pickerOptions"
+													range-separator="_"
+													start-placeholder="开始日期"
+													end-placeholder="结束日期"
+													align="right">
+												  </el-date-picker> -->
+
+												  <el-time-picker is-range="" v-model="fence.edit.baseValidity" range-separator="_" start-placeholder="~~startTime~~" end-placeholder="~~endTime~~" placeholder="~~selectTimeLimit~~">
+												  </el-time-picker>
+											
+												</span>
+												<span class="addBtn" @click="addFenceValiItem">+</span>
+											</span>
+											<ul>
+												<li v-for="item in fence.edit.fenceValidities">
+													<span class='fence_from_wrap_row block fence_validity_style'>
+														<span class='block col_3 validity_show validity_visibility'>~~validity~~</span>
+														<span class='block col_7 fence_validity validity_show'>
+															<!-- <el-date-picker
+															v-model="item.validity"
+															size='mini'
+															type="datetimerange"
+															:picker-options="fence.pickerOptions"
+															range-separator="_"
+															start-placeholder="开始日期"
+															end-placeholder="结束日期"
+															align="right">
+														  </el-date-picker> -->
+
+														  <el-time-picker is-range="" v-model="item.validity" range-separator="_" start-placeholder="~~startTime~~" end-placeholder="~~endTime~~" placeholder="~~selectTimeLimit~~">
+														  </el-time-picker>
+														</span>
+														<span class="addBtn" @click="delFenceValiItem(item.onlyKey)">-</span>
+													</span>
+												</li>
+											</ul>
+
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~isRecord~~</span>
+												<span class='block col_7'>
+													<el-radio-group class="fence_from_wrap_isRecord_rad" v-model="fence.edit.isRecord">
+														<el-radio label="1">~~true~~</el-radio>
+														<el-radio label="0">~~false~~</el-radio>
+													</el-radio-group>
+												</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~isEamil~~</span>
+												<span class='block col_7'>
+													<el-radio-group class="fence_from_wrap_isEmail_rad" v-model="fence.edit.isEmail">
+														<el-radio label="1">~~true~~</el-radio>
+														<el-radio label="0">~~false~~</el-radio>
+													</el-radio-group>
+												</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+													<span class='block col_3'>~~isSms~~</span>
+													<span class='block col_7'>
+														<el-radio-group class="fence_from_wrap_isSMS_rad" v-model="fence.edit.isSMS">
+															<el-radio label="1">~~true~~</el-radio>
+															<el-radio label="0">~~false~~</el-radio>
+														</el-radio-group>
+													</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+											<button class="btn fence_from_wrap_sure" @click="fenceSave($event,'edit')">~~confirm~~</button>
+											<button class="btn fence_from_wrap_reset" @click="fenceClean($event,'fence');closeBtn('fence', 'edit')">~~cancel~~</button>
+											</span>
+										</span></form>
+									</div>
+
+								</div>
+							</div>
+							<!-- ~~attendance~~ -->
+							<div class="attendance one_menu_item">
+								<div class="fence_wrap" onclick="togMenus(this);">
+									<div class="fence_coin">
+										<el-tooltip class="item" effect="dark" :disabled="!disabled" content="~~attendance~~" placement="right">
+											<div class="fence_coin_wrap" style="background:url(../img/images/check.png)">
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="fence_text">~~attendance~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+									<template>
+										<el-table ref="fenceMultipleTable" :data="fence.attendanceData" border="" max-height="600" tooltip-effect="dark" @header-click="fenceShowAllTaggle('attendanceEdit')" @row-dblclick="fenceEdit" style="width: 100%">
+											<el-table-column label="~~view~~" width="80">
+												<template scope="scope">
+													<el-checkbox v-model="scope.row.isShow" @change="fenceShowTaggle(scope.row)"></el-checkbox>
+												</template>
+											</el-table-column>
+
+											<el-table-column label="~~operating~~" width="125">
+												<template scope="scope">
+													<button class="btn edit-btn table-btn" :disabled="!power" @click="fenceEdit(scope.row,$event)">~~edit~~</button>
+
+													<button class="btn del-btn table-btn" :disabled="!power" @click="fenceDelete($event, scope.row.id,'fence')">~~delete~~</button>
+												</template>
+											</el-table-column>
+											<el-table-column label='~~name~~' width='85'>
+												<template scope='scope'>
+													<button class="btn edit-btn table-btn" :disabled="scope.row.ftypeId != 4" @click="fenceAttendance($event, scope.row,'fence')">~~name~~</button>
+												</template>
+											</el-table-column>
+											<el-table-column prop="cname" label="~~name2~~" sortable="" width="85">
+											</el-table-column>
+											<el-table-column prop='tagCatCname' label='~~tagGroup~~' sortable="" width='110' :formatter='formatTagCat'>
+											</el-table-column>
+
+										</el-table>
+									</template>
+									<button @click.prevent="setAreaByType($event,'fence','attendanceEdit')" class="btn draw_fence">~~drawAttendanceArea~~</button>
+
+									<div class="fence_from_wrap">
+										<form class="nodes-form form-edit" v-show="fence.attendanceEdit.visible">
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~name2~~</span>
+												<span class='block col_7'>
+													<input type="text" class="fence_from_wrap_input" :disabled="!power" v-model="fence.attendanceEdit.cname">
+												</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3 col_3_tagCat'>~~selectTagCat~~</span>
+												<span class='block col_7'>
+													<el-select name="" popper-class='fence_from_wrap-select_tagCat_popper' size='small' class="fence_from_wrap-select_tagCat" v-model='fence.attendanceEdit.tagCat' multiple='multiple' placeholder="~~selectTagCat~~">
+														<el-option v-for="(item,index) in this.tagCat.data" :key='index' :style="'color:' + item.color" :label="item.cname" :value="item.id">{{item.cname}}</el-option>
+													</el-select>
+												</span>
+											</span>
+											<span class='fence_from_wrap_row'>
+											<button class="btn fence_from_wrap_sure" @click="fenceSave($event,'attendanceEdit')">~~confirm~~</button>
+											<button class="btn fence_from_wrap_reset" @click="fenceClean($event,'fence');closeBtn('fence','attendanceEdit')">~~cancel~~</button>
+											</span>
+										</form>
+									</div>
+
+								</div>
+							</div>
+							<!-- ~~pollingArea~~ -->
+							<div class="polling one_menu_item">
+								<div class="fence_wrap" onclick="togMenus(this);">
+									<div class="fence_coin">
+										<el-tooltip class="item" effect="dark" :disabled="!disabled" content="~~timingPolling~~" placement="right">
+											<div class="fence_coin_wrap" style="background:url(../img/images/Inspection.png)">
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="fence_text">~~timingPolling~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+									<template>
+										<el-table ref="fenceMultipleTable" :data="fence.pollingData" border="" max-height="600" tooltip-effect="dark" @header-click="fenceShowAllTaggle('pollingEdit')" @row-dblclick="fenceEdit" style="width: 100%">
+											<el-table-column label="~~view~~" width="80">
+												<template scope="scope">
+													<el-checkbox v-model="scope.row.isShow" @change="fenceShowTaggle(scope.row)"></el-checkbox>
+												</template>
+											</el-table-column>
+
+											<el-table-column label="~~operating~~" width="125">
+												<template scope="scope">
+													<button class="btn edit-btn table-btn" :disabled="!power" @click="fenceEdit(scope.row,$event)">~~edit~~</button>
+
+													<button class="btn del-btn table-btn" :disabled="!power" @click="fenceDelete($event, scope.row.id,'fence')">~~delete~~</button>
+												</template>
+											</el-table-column>
+											<el-table-column prop="cname" label="~~name2~~" sortable="" width="85">
+											</el-table-column>
+
+											<el-table-column prop="ftype" label="~~type2~~" sortable="" width="90">
+											</el-table-column>
+											<el-table-column prop='tagCatCname' label='~~tagGroup~~' sortable="" width='110' :formatter='formatTagCat'>
+											</el-table-column>
+
+										</el-table>
+									</template>
+									<button @click.prevent="setAreaByType($event,'fence','pollingEdit')" class="btn draw_fence">~~drawPollingArea~~</button>
+
+									<div class="fence_from_wrap">
+										<form class="nodes-form form-edit" v-show="fence.pollingEdit.visible">
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3'>~~name2~~</span>
+												<span class='block col_7'>
+													<input type="text" class="fence_from_wrap_input" :disabled="!power" v-model="fence.pollingEdit.cname">
+												</span>
+											</span>
+											<span class='fence_from_wrap_row block'>
+												<span class='block col_3 col_3_tagCat'>~~selectTagCat~~</span>
+												<span class='block col_7'>
+													<el-select name="" popper-class='fence_from_wrap-select_tagCat_popper' size='small' class="fence_from_wrap-select_tagCat" v-model='fence.pollingEdit.tagCat' multiple='multiple' placeholder="~~selectTagCat~~">
+														<el-option v-for="(item,index) in this.tagCat.data" :key='index' :style="'color:' + item.color" :label="item.cname" :value="item.id">{{item.cname}}</el-option>
+													</el-select>
+												</span>
+											</span>
+											<span class='fence_from_wrap_row'>
+											<button class="btn fence_from_wrap_sure" @click="fenceSave($event,'pollingEdit')">~~confirm~~</button>
+											<button class="btn fence_from_wrap_reset" @click="fenceClean($event,'fence');closeBtn('fence','pollingEdit')">~~cancel~~</button>
+											</span>
+										</form>
+									</div>
+
+								</div>
+							</div>
+
+							<!--~~ZerodimensionalArea~~-->
+							<div class="dimension one_menu_item" v-if="enableDimensionArea">
+								<div class="dimension_wrap" onclick="togMenus(this);">
+									<div class="dimension_coin">
+										<el-tooltip class="item" effect="dark" :disabled="!disabled" content="~~specialZone~~" placement="right">
+											<div class="dimension_coin_wrap">
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="dimension_text">~~specialZone~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+									<template>
+										<el-table ref="fenceMultipleTable" :data="fence.specialZoneData" border="" max-height="600" tooltip-effect="dark" @header-click="fenceShowAllTaggle('specialZone')" @row-dblclick="fenceEdit" style="width: 100%">
+											<el-table-column label="~~view~~" width="80">
+												<template scope="scope">
+													<el-checkbox v-model="scope.row.isShow" @change="fenceShowTaggle(scope.row)"></el-checkbox>
+												</template>
+											</el-table-column>
+
+											<el-table-column label="~~operating~~" width="125">
+												<template scope="scope">
+													<button class="btn edit-btn table-btn" :disabled="!power" @click="fenceEdit(scope.row,$event)">~~edit~~</button>
+
+													<button class="btn del-btn table-btn" :disabled="!power" @click="fenceDelete($event, scope.row.id,'fence')">~~delete~~</button>
+
+												</template>
+											</el-table-column>
+
+											<el-table-column prop="cname" label="~~name2~~" sortable="" width="85">
+											</el-table-column>
+
+											<el-table-column prop="ftype" label="~~type2~~" sortable="" width="90">
+											</el-table-column>
+
+										</el-table>
+									</template>
+									<button @click.prevent="setAreaByType($event,'fence', 'specialZone')" class="btn draw_fence">~~drawingArea~~</button>
+
+									<div class="dimension_from_wrap">
+										<form class="nodes-form form-edit" v-show="fence.specialZone.visible">
+
+											<dl>
+												<dt class="dimension_from_wrap_name">~~name2~~</dt>
+												<dd>
+													<input type="text" class="dimension_from_wrap_input" :disabled="!power" v-model="fence.specialZone.cname">
+												</dd>
+											</dl>
+
+											<div class="dim_btn-box" v-show="power">
+												<button class="btn dim_from_wrap_btn" @click="fenceSave($event,'specialZone')">~~confirm~~</button>
+												<button class="btn dim_from_wrap_btn" @click="fenceClean($event,'fence');closeBtn('fence','specialZone')">~~cancel~~</button>
+											</div>
+										</form>
+									</div>
+
+								</div>
+							</div>
+							<!--~~moreMonitor~~-->
+
+
+
+							<div class="moreMonitor one_menu_item" v-if="enableMoreMonitor">
+								<div class="moreMonitor_wrap" onclick="togMenus(this);">
+									<div class="moreMonitor_coin">
+										<el-tooltip class="item" effect="dark" :disabled="!disabled" content="~~moreMonitor~~" placement="right">
+											<div class="moreMonitor_coin_wrap">
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="moreMonitor_text">~~moreMonitor~~</div>
+									<div style="float: right;margin-right: 32px;" class="tag_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+									<template>
+										<el-table ref="moreMonitorMultipleTable" :data="moreMonitor.data" border="" max-height="600" tooltip-effect="dark" @row-dblclick="moreMonitorEdit" style="width: 100%">
+											<el-table-column label="~~operating~~" width="125">
+												<template scope="scope">
+													<button class="btn edit-btn table-btn" :disabled="!power" @click="moreMonitorEdit(scope.row,$event)">~~edit~~</button>
+
+													<button class="btn del-btn table-btn" :disabled="!power" @click="moreMonitorDelete($event, scope.row)">~~delete~~</button>
+
+												</template>
+											</el-table-column>
+
+											<el-table-column prop="cname" label="~~name2~~" sortable="" width="85">
+											</el-table-column>
+
+											<el-table-column prop="distance" label="~~distanceRange~~" sortable="" width="90">
+											</el-table-column>
+
+											<el-table-column prop="model" label="监管模式" sortable="" :formatter="checkMoreModel" width="90">
+											</el-table-column>
+
+											<el-table-column prop="watchman" label="~~watchman~~" sortable="" width="110">
+											</el-table-column>
+
+											<el-table-column prop="startTime" label="开始时间" sortable="" width="110">
+											</el-table-column>
+											<el-table-column prop="endTime" label="结束时间" sortable="" width="110">
+											</el-table-column>
+											<el-table-column prop="tags" label="~~member~~" class-name="hideCol" sortable="" width="0">
+											</el-table-column>
+
+										</el-table>
+									</template>
+									<button @click.prevent="addHandle('moreMonitor',$event)" class="btn draw_fence">~~addGroup~~</button>
+
+									<div class="moreMonitor_from_wrap">
+										<form class="nodes-form form-edit" v-show="moreMonitor.visible">
+											<dl>
+												<dt class="moreMonitor_from_wrap_name">~~name2~~</dt>
+												<dd>
+													<input type="text" class="moreMonitor_from_wrap_input" :disabled="!power" v-model="moreMonitor.edit.cname">
+												</dd>
+											</dl>
+
+											<dl>
+												<dt class="moreMonitor_from_wrap_type">~~member~~</dt>
+												<dd id="moreMonitor_d">
+													<input type="text" id="moreMonitor_all" class="form-control moreMonitor_from_wrap_input" v-model="moreMonitor.searchValue" placeholder="~~search~~/~~select~~" @keyup="searchMonitorTag">
+													<div class="moreMonitor_all_box" :class="{ boxactive: moreMonitor.boxisActive }">
+														<div class="moreMonitor_all_options">
+															<el-checkbox-group v-model="moreMonitor.macs">
+																<el-checkbox v-for="item in moreMonitor.allTagsData" :label="item.mac" :key='item.mac'>{{item.mac}}</el-checkbox>
+															</el-checkbox-group>
+														</div>
+													</div> 
+												</dd>
+											</dl>
+											<dl>
+												<dt>监管模式</dt>
+												<dd>
+													<el-radio v-model="moreMonitor.edit.model" label="moreMonitorOne">主监</el-radio>
+													<el-radio v-model="moreMonitor.edit.model" label="moreMonitorAll">互监</el-radio>
+												</dd>
+											</dl>
+
+											<dl v-if="moreMonitor.edit.model=='moreMonitorOne'">
+												<dt class="moreMonitor_from_wrap_trif">~~watchman~~</dt>
+												<dd>
+													<select class="form-control moreMonitor_from_wrap-select" v-model="moreMonitor.edit.watchman">
+														<option v-for="(item,index) in moreMonitor.edit.tags" :value="item.mac">
+															{{item.mac}}
+														</option>
+													</select>
+												</dd>
+											</dl>
+											<dl v-if="moreMonitor.edit.model=='moreMonitorAll'">
+												<dt>有效期</dt>
+												<dd class="validityTime">
+													<el-date-picker v-model="moreMonitor.edit.datetimeRange" type="datetimerange" size='mini' align="right" start-placeholder="开始日期" end-placeholder="结束日期" :default-time="['12:00:00', '08:00:00']">
+    													</el-date-picker>
+												</dd>
+											</dl>
+
+											<dl>
+												<dt class="moreMonitor_from_wrap_name">~~distanceRange~~</dt>
+												<dd>
+													<input type="number" min="0" step="0.01" class="moreMonitor_from_wrap_input" :disabled="!power" v-model="moreMonitor.edit.distance" placeholder="   ~~m~~">
+												</dd>
+											</dl>
+
+											<dl>
+												<dt class="moreMonitor_from_wrap_trif">~~color~~</dt>
+												<dd>
+													<input type="color" v-model="moreMonitor.edit.color">
+												</dd>
+											</dl>
+
+
+											<div class="btn-box" v-show="power">
+												<button class="btn moreMonitor_from_wrap_sure" @click="moreMonitorSave($event)">~~confirm~~</button>
+												<button class="btn moreMonitor_from_wrap_reset" @click="moreMonitorClean($event)">~~cancel~~</button>
+											</div>
+										</form>
+									</div>
+
+								</div>
+							</div>
+
+
+
+							<!--~~camera~~-->
+							<div class="camera one_menu_item" id="camera_wrap" v-if="isShowCamera">
+								<div class="camera_wrap" onclick="togMenus(this);">
+									<div class="camera_coin">
+										<el-tooltip class="item" :disabled="!disabled" effect="dark" content="~~camera~~" placement="right">
+											<div class="camera_coin_wrap">
+												<!--<img src="../img/images/label_ubi.png" alt="">-->
+											</div>
+										</el-tooltip>
+
+									</div>
+									<div class="camera_text">~~camera~~</div>
+									<div style="float: right;margin-right: 32px;" class="camera_coin_back">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear table_box">
+									<div style='color:#fff;'>~~cameraNotePre~~onvif~~cameraNoteMid~~rtsp~~protocol~~</div>
+									<template>
+										<el-table ref="cameraMultipleTable" :data="camera.data" border="" max-height="400" tooltip-effect="dark" style="width: 100%" @header-click="cameraTableHeaderClick" @row-dblclick="editItem">
+										<el-table-column label="~~view~~" width="50">
+											<template scope="scope">
+												<el-checkbox v-model="scope.row.isShow" @change="handleCheckChange('camera',scope.row)"></el-checkbox>
+											</template>
+										</el-table-column>
+											<el-table-column label="~~operating~~" width="150">
+												  <template scope="scope">
+													   <button class="btn edit-btn table-btn" :disabled="!power" @click="editItem(scope.row,$event)">~~edit~~</button>
+
+													   <button class="btn del-btn table-btn" :disabled="!power" @click="cameraDelete($event, scope.row.id)">~~delete~~</button>
+
+												 </template>
+											</el-table-column>
+											<!--<el-table-column-->
+													<!--prop="id"-->
+													<!--label="ID"-->
+													<!--sortable-->
+													<!--width="60">-->
+											<!--</el-table-column>-->
+
+											<el-table-column prop="ip" label="IP~~address~~" sortable="" width="120">
+													<template scope="scope">
+															<a href="javascript:void(1);" @click="openVideo(scope.row.id)" style='color:#BFBBAD'>{{ scope.row.ip }}</a>
+													  </template>
+											</el-table-column>
+
+											<!--<el-table-column-->
+													<!--prop="mapId"-->
+													<!--label="~~ownMap~~"-->
+													<!--sortable-->
+													<!--width="120">-->
+											<!--</el-table-column>-->
+
+											<el-table-column prop="port" label="~~port2~~" sortable="" width="85">
+												<!--<template scope="scope">{{ scope.row.status=='online'?'~~online~~':'~~offline~~' }}</template>-->
+											</el-table-column>
+
+											<el-table-column prop="x" label="X" sortable="" width="85">
+											</el-table-column>
+
+											<el-table-column prop="y" label="Y" sortable="" width="85">
+											</el-table-column>
+
+											<!--<el-table-column-->
+													<!--prop="z"-->
+													<!--sortable-->
+													<!--label="Z"-->
+													<!--width="85"-->
+													<!--&gt;-->
+											<!--</el-table-column>-->
+
+											<el-table-column prop="interfaceAgreement" label="~~interfaceAgreement~~" width="100" sortable="" show-overflow-tooltip="">
+											</el-table-column>
+
+											<el-table-column prop="interfacePort" label="~~interfacePort~~" width="100" sortable="" show-overflow-tooltip="">
+								        	</el-table-column>
+
+											<el-table-column prop="networkAgreement" sortable="" label="~~networkAgreement~~" width="100">
+											</el-table-column>
+
+											<el-table-column prop="productModel" sortable="" label="~~model~~" width="100">
+											</el-table-column>
+
+											<el-table-column prop="seqNum" sortable="" label="~~serialNumber~~" width="100">
+											</el-table-column>
+											<el-table-column prop="initAngleX" sortable="" label="X~~axisAngle~~" width="100">
+											</el-table-column>
+											<el-table-column prop="rotateMax" sortable="" label="~~maxAngle~~" width="100">
+											</el-table-column>
+
+											<el-table-column prop="username" sortable="" label="~~ownUser~~" width="100">
+											</el-table-column>
+
+											<el-table-column prop="manu" sortable="" label="~~manu~~" width="100">
+											</el-table-column>
+											<el-table-column prop="addTime" sortable="" label="~~addTime~~" :formatter="cameraFormatter" width="200">
+											</el-table-column>
+										</el-table>
+									</template>
+
+									<button @click.prevent="setCamera($event)" class="btn draw_fence">~~addCamera~~</button>
+									<button @click.prevent="showCameraList($event)" class="btn draw_fence">~~cameraList~~</button>
+									<div class="camera_from_wrap">
+										<form class="nodes-form form-edit" v-show="camera.visible">
+											<!-- <dl>~~cameraNotePre~~onvif~~cameraNoteMid~~rtsp~~protocol~~</dl> -->
+											<dl>
+												<dt class="camera_from_wrap_ip">IP</dt>
+												<dd>
+													<input type="text" style="width:100%;float:left;" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.ip">
+													<!-- : -->
+													<!-- <input type="number" min='0' step='1' style="width:35%;float:right;" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.port"> -->
+												</dd>
+											</dl>
+											<dl>
+												<dt>~~cameraType~~</dt>
+												<dd>
+													<select name="" id="" class='form-control statis_from_wrap-select_trif' v-model='camera.floatEdit.data.type'>
+														<option value="1">~~gunMachine~~</option>
+														<option value="2">~~ballMachine~~</option>
+													</select>
+												</dd>
+											</dl>
+											<dl>
+												<dt class="camera_from_wrap_manu">~~account~~</dt>
+												<dd>
+													<input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.username">
+												</dd>
+											</dl>
+											<dl>
+												<dt class="camera_from_wrap_manu">~~password~~</dt>
+												<dd>
+													<input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.password">
+												</dd>
+											</dl>
+											<dl>
+												<dt class="camera_from_wrap_manu">~~cameraModel~~</dt>
+												<dd>
+													<!-- <input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.model"> -->
+													<select v-model='camera.floatEdit.data.model' class='form-control statis_from_wrap-select_trif'>
+														<option value="" v-for='(item,index) in camera.cameraModelList' :key='index' :value='item'>{{item}}</option>
+													</select>
+												</dd>
+											</dl>
+											<dl v-if='camera.floatEdit.data.type === "2"'>
+												<dt class="camera_from_wrap_manu">~~totalPan~~</dt>
+												<dd>
+													<input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.totalPan">
+												</dd>
+											</dl>
+											<dl v-if='camera.floatEdit.data.type === "2"'>
+												<dt class="camera_from_wrap_manu">~~totalTilt~~</dt>
+												<dd>
+													<input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.totalTilt">
+												</dd>
+											</dl>
+											<dl v-if='camera.floatEdit.data.type === "2"'>
+												<dt class="camera_from_wrap_manu">~~usualTilt~~</dt>
+												<dd>
+													<input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.defaultTilt">
+												</dd>
+											</dl>
+											<!-- <dl>
+												<dt class="">~~interfaceAgreement~~</dt>
+												<dd>
+													<select class="form-control statis_from_wrap-select_trif" :disabled="!power"  v-model="camera.floatEdit.data.interfaceAgreement"
+													>
+														<option v-for="(item,index) in camera.interfaceAgreementSource" :value="item">
+															{{item}}
+														</option>
+													</select>
+												</dd>
+											</dl> -->
+
+											<!-- <dl>
+												<dt class="">~~networkAgreement~~</dt>
+												<dd>
+													<select class="form-control statis_from_wrap-select_trif" :disabled="!power"  v-model="camera.floatEdit.data.networkAgreement"
+													>
+														<option v-for="(item,index) in camera.networkAgreementSource" :value="item">
+															{{item}}
+														</option>
+													</select>
+												</dd>
+											</dl> -->
+
+											<dl>
+												<dt class="camera_from_wrap_initX">X~~axisAngle~~</dt>
+												<dd>
+													<input type="number" min='0' max='360' step='1' class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.initAngleX">
+												</dd>
+											</dl>
+											<dl>
+												<dt class="camera_from_wrap_rotateMax">~~maxAngle~~</dt>
+												<dd>
+													<input type="number" min='0' max='360' step='1' class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.rotateMax">
+												</dd>
+											</dl>
+											<dl class='camera_xyz'>
+												<dt class="camera_from_wrap_xyz">~~coordinate~~</dt>
+												<dd>
+													<dd class="position-li">
+															<input id="x" name="x" placeholder="X" style="background: #000000;
+															opacity: 0.5;width:30%;height:30px;border-radius:2px;line-height:30px;text-indent: 4px;border:1px solid #CCCCCC; float:left" type="number" v-model="camera.floatEdit.data.x">
+															<input name="y" placeholder="Y" style="background: #000000;
+															opacity: 0.5;width:30%;height:30px;border-radius:2px;line-height:30px;text-indent: 4px;border:1px solid #CCCCCC;margin:0 4px " type="number" v-model="camera.floatEdit.data.y">
+															<input name="z" placeholder="Z" style="background: #000000;
+															opacity: 0.5;width:30%;height:30px;border-radius:2px;line-height:30px;text-indent: 4px;border:1px solid #CCCCCC; float:right" type="number" v-model="camera.floatEdit.data.z">
+													</dd>
+												
+											</dl>
+											<dl>
+													<dt class="camera_from_wrap_manu">~~manu~~</dt>
+													<dd>
+														<input type="text" class="camera_from_wrap_input" :disabled="!power" v-model="camera.floatEdit.data.manu">
+													</dd>
+												</dl>
+											<!-- <dl> -->
+
+											<div class="btn-box" v-show="power">
+											<button @click="cameraSave($event)" class="btn btn-default camera_save" type="button">
+											~~confirm~~</button>
+											<button @click="cameraFloatEditCancell" class="btn btn-default anchor_del" type="button">
+											~~cancel~~</button>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+							<!--~~historicalTrack~~-->
+							<div class="historys one_menu_item">
+								<div class="historys_wrap" onclick="togMenus(this);">
+									<div class="history_coin">
+										<el-tooltip class="item" :disabled="!disabled" effect="dark" content="~~history~~" placement="right">
+											<div class="history_coin_wrap"></div>
+										</el-tooltip>
+									</div>
+									<div class="history_text">~~historicalTrack~~</div>
+									<div class="tag_coin_back tag_coin_back_1">
+										<img src="../img/images/side_ubi.png" alt="">
+									</div>
+								</div>
+								<div class="appear">
+									<div class="block">
+										<el-date-picker v-model="history.datetimeRange" type="datetimerange" placeholder="~~selectDateRangeNote2~~" :picker-options="history.pickerOptions2">
+										</el-date-picker>
+									</div>
+
+									<div class="historySelectPanel">
+										<el-transfer v-model="history.tags" :titles="['~~selectTag~~', '~~selectedTag~~']" :data="history.allTags" filterable="" filter-placeholder="~~search~~" :filter-method="searchTags" :footer-format="{
+												  noChecked: '${total}',
+												  hasChecked: '${checked}/${total}'
+												}">
+										</el-transfer>
+										<!--<el-button class="transfer-footer" slot="right-footer" size="small" @click="historyPlay('play')" :loading="history.isLoading">~~playHistory~~</el-button>-->
+										<el-button class="transfer-footer" slot="right-footer" size="small" @click="historyBegin" :loading="history.isLoading">~~playHistory~~</el-button>
+									</div>
+
+									</div>
+							</div>
+
+
+							<!--<div class="statis">-->
+								<!--<div class="statis_wrap" onclick="togMenus(this);">-->
+									<!--<div class="statis_coin">-->
+										<!--<el-tooltip class="item" effect="dark" :disabled="!disabled" content="~~statistics~~" placement="right">-->
+											<!--<div class="statis_coin_wrap">-->
+											<!--</div>-->
+										<!--</el-tooltip>-->
+
+									<!--</div>-->
+									<!--<div class="statis_text">~~statistics~~</div>-->
+									<!--<div style="float: right;margin-right: 32px;" class="tag_coin_back">-->
+										<!--<img src="../img/images/side_ubi.png" alt="">-->
+									<!--</div>-->
+								<!--</div>-->
+								<!--<div class="appear table_box">-->
+
+								<!--<div class="statis_text">-->
+									<!--<span class=" statis_fence active">~~fence2~~</span><span>|</span>-->
+									<!--<span class="statis_system">~~system~~</span><span>|</span>-->
+									<!--<span class="statis_datas">~~unknownNote6~~</span>-->
+								<!--</div>-->
+
+								<!--<div class="statis_appear_fence active">-->
+									<!--&lt;!&ndash;<div class="total_date">&ndash;&gt;-->
+										<!--&lt;!&ndash;<span @click="fenceStChangeTimeSpan(0,30)">~~past~~30~~day~~</span><span>|</span>&ndash;&gt;-->
+										<!--&lt;!&ndash;<span @click="fenceStChangeTimeSpan(0,7)">~~past~~7~~day~~</span><span>|</span>&ndash;&gt;-->
+										<!--&lt;!&ndash;<span @click="fenceStChangeTimeSpan(1,2)">~~yesterday~~</span><span>|</span>&ndash;&gt;-->
+										<!--&lt;!&ndash;<span @click="fenceStChangeTimeSpan(0,1)" class="active">~~today~~</span>&ndash;&gt;-->
+									<!--&lt;!&ndash;</div>&ndash;&gt;-->
+									<!--<div class="total_date">-->
+										<!--<span @click="fenceGetStatisData($event,[0,30])">~~past~~30~~day~~</span><span>|</span>-->
+										<!--<span @click="fenceGetStatisData($event,[0,7])">~~past~~7~~day~~</span><span>|</span>-->
+										<!--<span @click="fenceGetStatisData($event,[1,2])">~~yesterday~~</span><span>|</span>-->
+										<!--<span @click="fenceGetStatisData($event,[0,1])" class="active" id="default_show">~~today~~</span>-->
+									<!--</div>-->
+
+									<!--<div style="position: relative">-->
+										<!--<span class="statis_from_wrap_trif">~~selectFence~~</span>-->
+										<!--<span>-->
+											<!--<select class="form-control statis_from_wrap-select_fence" v-model="statis.fenceStatisAttr.fenceId"-->
+													<!--@change="fenceGetStatisData"-->
+											<!--&gt;-->
+												<!--<option v-for="(item,index) in fence.data" :value="item.id">-->
+													<!--{{item.cname}}-->
+												<!--</option>-->
+											<!--</select>-->
+										<!--</span>-->
+									<!--</div>-->
+
+									<!--<div style="position: relative">-->
+										<!--<span class="statis_from_wrap_trif">~~triggeringCondition~~</span>-->
+										<!--<span>-->
+											<!--<select class="form-control statis_from_wrap-select_trif" v-model="statis.fenceStatisAttr.trif"-->
+													<!--@change="fenceGetStatisData"-->
+											<!--&gt;-->
+												<!--<option v-for="(item,index) in fence.trif" :value="item.id">-->
+													<!--{{item.cname}}-->
+												<!--</option>-->
+											<!--</select>-->
+										<!--</span>-->
+									<!--</div>-->
+
+									<!--<div class="statis_wrap">-->
+										<!--<div id="statis" style="min-width:300px;height:300px;"></div>-->
+									<!--</div>-->
+								<!--</div>-->
+
+								<!--<div class="statis_appear_system">-->
+									<!--<div id="statis_system_one" style="min-width:300px;height:300px"></div>-->
+									<!--<div id="statis_system_two" style="min-width:300px;height:300px"></div>-->
+									<!--<div id="statis_system_three" style="min-width:300px;height:300px"></div>-->
+								<!--</div>-->
+
+								<!--<div class="statis_appear_datas">-->
+
+
+									<!--<div style="margin-left: 18px;text-align: center;-->
+		<!--line-height: 72px;">-->
+										<!--<img src="../img/images/hot.png" alt="">-->
+										<!--<p style="font-size: 12px;color: #bbbbbb;line-height: 2;">~~hotMap~~</p>-->
+									<!--</div>-->
+									<!--<div style="text-align: center;-->
+		<!--line-height: 72px;">-->
+										<!--<img src="../img/images/spade.png" alt="">-->
+										<!--<p style="font-size: 12px;color: #bbbbbb;line-height: 2;">~~speedMap~~</p>-->
+									<!--</div>-->
+									<!--<div style="margin-right: 0 !important;text-align: center;-->
+		<!--line-height: 72px;">-->
+										<!--<img src="../img/images/other.png" alt="">-->
+										<!--<p style="font-size: 12px;color: #bbbbbb;line-height: 2;">~~other~~</p>-->
+									<!--</div>-->
+								<!--</div>-->
+
+								<!--</div>-->
+							<!--</div>-->
+						</div>
+
+
+						<div class="line_color"></div>
+						<div class="btn-appear" id="btn-appear"></div>
+						<div class="search">
+							<div class="search_wrap">
+								<input type="text" placeholder="~~tagOrAnchorName~~" id="searchTag" v-model="search.value" @keyup.enter="searchHandle">
+								<div class="search_img" @click="searchHandle"></div>
+							</div>
+						</div>
+					</aside>
+
+					<section class="content-container">
+
+						<div class="fullscreenDiv" v-show="fullScreen" @click="fullScreenOutHandle">
+								<span class="glyphicon glyphicon-fullscreen map-red-wrap "></span>&nbsp<span class="full-red"></span>
+						</div>
+
+						<div :class="['panel',tabActive!==0 ? '' :'active']" id="panel" v-show="!fullScreen">
+
+							<transition name="slide-fade">
+							<div class="checkbox clearfix" id="fixNagPanel" v-show="slide_fade_show">
+								<div class="map_icon" @click="tabActive === 0 ? tabActive='': tabActive=0" :class="['bar-li', 'li-0', tabActive === 0? 'active': '']">
+									<span class="glyphicon glyphicon-map-marker map-red-wrap "></span>&nbsp<span class="map-red">~~map~~</span>
+								</div>
+
+								<div class="setting_icon" @click="tabActive === 1 ? tabActive='': tabActive=1" :class="['bar-li', 'li-1', tabActive === 1? 'active': '']">
+									<span class="glyphicon glyphicon-cog map-red-wrap "></span>&nbsp<span class="setting-red">~~setting~~</span>
+								</div>
+
+								<div class="full_icon" @click="fullScreenHandle" :class="['bar-li', 'li-2', fullScreen? 'active': '']">
+									<span class="glyphicon glyphicon-fullscreen map-red-wrap "></span>&nbsp<span class="full-red">~~fullScreen~~</span>
+								</div>
+							</div>
+							</transition>
+
+							<div class="tab-list" v-show="tabActive !== ''">
+								<div :class="['list-item', 'list-0', tabActive === 0? 'active': '']">
+
+									<!-- ~~unknownNote5~~-->
+									<div>
+										<el-carousel :autoplay="false" type="card" height="100px">
+											<el-carousel-item v-for="item in map.data" :key="item">
+												<img :src="item.imgPath" height="100px" :title="item.cname" :alt="item.cname" @click="changeMap(item.id)">
+											</el-carousel-item>
+										</el-carousel>
+									</div>
+
+
+								</div>
+
+
+								<div :class="['list-item', 'list-1', tabActive === 1? 'active': '']">
+									<div class="search-box">
+										<div class="search-box-content">
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~measuringDistance~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.distance}]" @click="switchFunc('distance', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~mapCalibration~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.correctMap}]" @click="switchFunc('correctMap', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~lockLabel~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.lockTag}]" @click="switchFunc('lockTag', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~fencePrompt~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.fenceTip}]" @click="switchFunc('fenceTip', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item" v-show="switchData.fenceTip">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~alarmSound~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.sound}]" @click="switchFunc('sound', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~showGrid~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.grid}]" @click="switchFunc('grid', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~showCamera~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.showCamera}]" @click="switchFunc('showCamera', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~showFence~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.fence}]" @click="switchFunc('fence', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~showPower~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.power}]" @click="switchFunc('power', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+
+											<div class="item" v-show="switchData.power">
+												<div style="line-height: 28px;">
+													<el-tooltip class="item" effect="dark" content="~~openShowPower~~" placement="top">
+													<div style="float: left;font-size: 12px;color: #777777;">
+														~~autoPower~~
+													</div></el-tooltip>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.powerAuto}]" @click="switchFunc('powerAuto', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+
+											<!--~~add~~ ~~realTimeLocation~~-->
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~realTimeLocation~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.isShowCoordinate}]" @click="switchFunc('isShowCoordinate', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+											<!--~~distanceAlarmSwitch~~-->
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~distanceAlarm~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.distanceAlert}]" @click="switchFunc('distanceAlert', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+
+											 <!--~~add~~ ~~setOrigin~~-->
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~setOrigin~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<div v-bind:class="['switch', {on:switchData.setOrigin}]" @click="switchFunc('setOrigin', $event)"><i></i></div>
+													</div>
+												</div>
+											</div>
+
+											 <!--realTimeStatistics-->
+											 <div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~realTimeStatistics~~</div>
+													<div style="float: right;margin-top: 5px;">
+														<el-tooltip effect="dark" content="~~howTorealTimeStatistics~~" placement="top">
+															<div v-bind:class="['switch', {on:switchData.realTimeStatistics}]" @click="switchFunc('realTimeStatistics', $event)"><i></i></div>
+														</el-tooltip>
+														
+													</div>
+												</div>
+											</div>
+
+											<div class="item">
+												<div style="line-height: 28px;">
+													<div style="float: left;font-size: 12px;color: #777777;">~~trailing~~</div>
+													<div style="float: right;margin-top: 7px; width: 86px;">
+														<el-slider v-model="rangeData.value"></el-slider>
+													</div>
+												</div>
+											</div>
+											<div class="clear">
+												<div class="clear_wrap">
+													<input type="button" value="~~clearAlarm~~" v-show="!disabled" @click.stop="clearSiren">
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+							<!-- ~~editTag~~-->
+							<el-popover ref="popover_tag" placement="right-end" width="460" v-model="tag.floatEdit.visible">
+								<div class="form-horizontal-tag agreementDlg">~~editTag~~</div>
+								<span class="close-btn form-horizontal-tag-close" @click="tag.floatEdit.visible = false"></span>
+
+
+								<!-- ~~tagQrcode~~ -->
+									<div style="width: 50%; float: left;text-align: center">
+										<h5>{{tag.qrcode.title}}</h5>
+										<div>2D</div>
+										<a :href="tag.qrcode.value_2d" target="_blank">
+											<qrcode :value="tag.qrcode.value_2d" tag="img" :options="{ size: 150}" style="margin:10px;width:200px;"></qrcode>
+										</a>
+										<!--~~mapFollowTag~~-->
+										<div class="follow_map" style="display: block">
+											<input type="button" value="~~mapFollow~~" @click="follow_map">
+											<input type="button" value="~~downstreamAlarm~~" @click="down_alert">
+											<input type="button" value='~~cameraFollow~~' @click='followTagVideo' v-show="isShowCamera">
+											<input type="button" value="~~heartRateView~~" @click="showHeartRateLine">
+											<input type="button" value="~~adjustTagPosition~~" @click="setCoordinate('tag')" v-show="isSuper">
+										</div>
+										<!--v-if="userType === 'anony'"-->
+
+										<!--<div v-show="enable3d" >3D</div>-->
+										<!--<a :href="tag.qrcode.value_3d" target="_blank" v-show="enable3d">-->
+											<!--<qrcode :value="tag.qrcode.value_3d" tag="img" :options="{ size: 180}" style="margin:10px;width:200px;"></qrcode>-->
+										<!--</a>-->
+									</div>
+
+
+								<form class="form-horizontal" style="float: right;width: 50%">
+									<!--<div class="form-horizontal-tag agreementDlg">~~editTag~~</div>-->
+									<!--<span class="close-btn form-horizontal-tag-close" @click="tag.floatEdit.visible = false"></span>-->
+									<div class="form-group">
+										<label for="code" class="col-sm-3 control-label">~~coding~~</label>
+										<div class="col-sm-8">
+											<input type="text" class="form-control" disabled="true" v-model="tag.floatEdit.data.code" placeholder="~~enterCode~~">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label for="alias" class="col-sm-3 control-label">~~alias2~~</label>
+										<div class="col-sm-8">
+											<input type="text" class="form-control" :disabled="!power" v-model="tag.floatEdit.data.alias" placeholder="~~enterAlias~~">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label for="catId" class="col-sm-3 control-label">~~gorup2~~</label>
+										<div class="col-sm-8">
+											<select class="form-control" v-model="tag.floatEdit.data.catId" :disabled="!power">
+												<option v-for="item in tagCat.data" :data="item.cname" :value="item.id" :style="{color: item.color}">{{item.cname}}</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="typeId" class="col-sm-3 control-label">~~type2~~</label>
+										<div class="col-sm-8">
+											<select class="form-control" v-model="tag.floatEdit.data.typeId" :disabled="!power" @change="tagTypeChangeImg()">
+												<option v-for="item in tagType.data" :data="item.cname" :value="item.id">{{item.cname}}</option>
+											</select>
+											<img :src="tag.floatEdit.typeIcon" width="40px" v-if="tag.floatEdit.typeIconShow">
+										</div>
+									</div>
+
+
+
+									<div class="form-group">
+											<label for="" class="col-sm-3 control-label">心率</label>
+											<div class="col-sm-8 heart_num_wrap">
+												<input type="number" class="form-control heart_num" v-model="tag.floatEdit.data.minHeart" placeholder="最低">
+												<input type="number" class="form-control heart_num" v-model="tag.floatEdit.data.maxHeart" placeholder="最高">
+											</div>
+										</div>
+
+
+									<div class="form-group" v-show="power">
+										<div class="col-sm-offset-2 col-sm-10">
+											<button type="button" class="btn btn-default tag_save" @click="tagSave($event)">~~confirm~~</button>
+											<button type="button" class="btn btn-default tag_del" @click="tag.floatEdit.visible = false;">~~cancel~~</button>
+										</div>
+									</div>
+
+								</form>
+
+							</el-popover>
+
+						
+							<!-- ~~editAnchor~~-->
+							<el-popover ref="popover_anchor" placement="right-end" :width="floatEditWidth" v-model="anchor.floatEdit.visible">
+
+								<form class="form-horizontal">
+									<div class="form-horizontal-anchor agreementDlg">~~editAnchor~~</div>
+									<span class="close-btn form-horizontal-anchor-close" @click="anchorFloatEditCancell"></span>
+
+									<div class="form-group">
+										<label for="code" class="col-sm-3 control-label">~~coding~~</label>
+										<div class="col-sm-8">
+											<input type="text" class="form-control" disabled="true" v-model="anchor.floatEdit.data.code" placeholder="~~enterCode~~">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label for="mac" class="col-sm-3 control-label">MAC</label>
+										<div class="col-sm-8">
+											<input type="text" class="form-control" disabled="true" v-model="anchor.floatEdit.data.mac" placeholder="~~enter~~MAC">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label for="alias" class="col-sm-3 control-label">~~alias2~~</label>
+										<div class="col-sm-8">
+											<input type="text" class="form-control" :disabled="!power" v-model="anchor.floatEdit.data.alias" placeholder="~~enterAlias~~">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label for="mapId" class="col-sm-3 control-label">~~map~~</label>
+										<div class="col-sm-8">
+											<select class="form-control" v-model="anchor.floatEdit.data.mapId" :disabled="!power" @change="mapChangeImg()">
+												<option v-for="item in map.data" :data="item.cname" :value="item.id" :key="item.id">{{item.cname}}</option>
+											</select>
+											<img :src="anchor.floatEdit.mapImg" width="120px">
+										</div>
+									</div>
+
+									<div class="form-group" v-if="anchor.floatEdit.data.productId == 17">
+										<label for="direction" class="col-sm-3 control-label">~~direction~~</label>
+										<div class="col-sm-8">
+											<input type="text" class="form-control" v-model="anchor.floatEdit.data.direction" placeholder="0 - 360">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label for="position" class="col-sm-3 control-label">~~coordinate~~</label>
+										<div class="col-sm-8">
+
+
+											<button class="form-group-set" @click.prevent="setAnchorCoordinate('anchor')" class="btn">~~setCoordinate~~</button>
+											<ul class="position-ul">
+												<li class="position-li">
+													<input type="number" name="x" step="0.01" placeholder="x(m)" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="anchor.floatEdit.data.x">
+
+													<input type="number" name="y" step="'0.01" placeholder="y(m)" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="anchor.floatEdit.data.y">
+
+													<input type="number" name="z" step="'0.01" placeholder="z(m)" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="anchor.floatEdit.data.z">
+												</li>
+											</ul>
+											<!-- <span>OR</span> -->
+											<button class="form-group-set" @click.prevent="showDistanceFromAllAnchor()" class="btn">~~showAnchorDistance~~</button>
+
+										</div>
+									</div>
+
+									<div class="form-group" v-show="power">
+										<div class="col-sm-offset-2 col-sm-10">
+											<button type="button" class="btn btn-default anchor_save" @click="anchorSave($event)">~~confirm~~</button>
+											<button type="button" class="btn btn-default anchor_del" @click="anchorFloatEditCancell">~~cancel~~</button>
+										</div>
+									</div>
+
+								</form>
+							</el-popover>
+
+                            <!-- ~~editCamera~~-->
+							<el-popover ref="popover_camera" placement="right-end" width="280" v-model="camera.floatEdit.visible">
+
+						<form class="form-horizontal">
+							<div class="form-horizontal-tag agreementDlg">~~editCamera~~</div>
+							<span class="close-btn form-horizontal-tag-close" @click="cameraFloatEditCancell"></span>
+							<div class="form-group">
+								<label for="ip" class="col-sm-3 control-label">IP:~~port2~~</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" style="float:left;width:60%;padding:0" v-model="camera.floatEdit.data.ip" placeholder="~~enter~~IP">
+									<button class="form-control" @click.prevent='openVideo(camera.floatEdit.data.id)' style="float:right;height:34px;width:40%;padding:0">~~openCamera~~</button>
+									<!-- <input type="number" min='0' step='1' class="form-control"  :disabled="!power" style="float:right;width:30%;padding:0" v-model="camera.floatEdit.data.port"  placeholder="~~port2~~">									 -->
+								</div>
+							</div>
+							<!-- <div class="form-group">
+								<label for="type"  class="col-sm-3 control-label">~~cameraType~~</label>
+								<div class="col-sm-8">
+									<select class="form-control" v-model="camera.floatEdit.data.type" :disabled="!power"  >
+										<option value="1">~~gunMachine~~</option>
+										<option value="2">~~ballMachine~~</option>
+									</select>
+								</div>
+							</div> -->
+							<div class="form-group">
+								<label for="manu" class="col-sm-3 control-label">~~brand~~</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" :disabled="!power" v-model="camera.floatEdit.data.manu" placeholder="~~brand~~">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="initAngleX" class="col-sm-3 control-label">X~~axisAngle~~</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" :disabled="!power" v-model="camera.floatEdit.data.initAngleX" placeholder="~~brand~~">
+								</div>
+							</div>
+<!-- 
+							<div class="form-group">
+								<label for="typeId"  class="col-sm-3 control-label">~~networkAgreement~~</label>
+								<div class="col-sm-8">
+									<select class="form-control" v-model="camera.floatEdit.data.networkAgreement" :disabled="!power"  >
+										<option v-for="item in camera.networkAgreementSource" :data="item" :value="item" >{{item}}</option>
+									</select>
+								</div>
+							</div> -->
+
+							<!-- <div class="form-group">
+								<label for="interfaceAgreement"  class="col-sm-3 control-label">~~interfaceAgreement~~:~~port2~~</label>
+								<div class="col-sm-8">
+									<select class="form-control" style='float:left;width:68%;' v-model="camera.floatEdit.data.interfaceAgreement" :disabled="!power" >
+										<option v-for="item in camera.interfaceAgreementSource" :data="item.cname" :value="item" >{{item}}</option>
+									</select>
+									<input type="number" min='0' step='1' class="form-control"  :disabled="!power" style="float:right;width:30%;padding:0" v-model="camera.floatEdit.data.interfacePort"  placeholder="~~port2~~">																		
+								</div>
+							</div> -->
+
+							<div class="form-group">
+								<label for="username" class="col-sm-3 control-label">~~user~~</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" :disabled="!power" v-model="camera.floatEdit.data.username" placeholder="~~user~~">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="password" class="col-sm-3 control-label">~~password~~</label>
+								<div class="col-sm-8">
+									<input type="password" class="form-control" :disabled="!power" v-model="camera.floatEdit.data.password" placeholder="~~password~~">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label for="productModel" class="col-sm-3 control-label">~~model~~</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" :disabled="!power" v-model="camera.floatEdit.data.productModel" placeholder="~~model~~">
+								</div>
+							</div>
+
+							<!-- <div class="form-group">
+								<label for="seqNum"  class="col-sm-3 control-label">~~serialNumber~~</label>
+								<div class="col-sm-8">
+									<input type="text"  class="form-control"  :disabled="!power"  v-model="camera.floatEdit.data.seqNum"  placeholder="~~serialNumber~~">
+								</div>
+							</div> -->
+							<div class="form-group">
+									<label for="position" class="col-sm-3 control-label">~~coordinate~~</label>
+									<div class="col-sm-8">
+										<button class="form-group-set" id='camera_set' @click.prevent="setCameraCoordinate('camera')" class="btn">~~settingInMap~~</button>
+										<ul class="position-ul">
+											<li class="position-li">
+												<span>X</span> <input type="number" name="x" placeholder="m" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="camera.floatEdit.data.x">
+												<span>&nbsp;&nbsp; Y</span> <input type="number" name="y" placeholder="m" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="camera.floatEdit.data.y">
+											</li>
+										</ul>
+										<!-- <span>OR</span> -->
+
+									</div>
+								</div>
+
+							<div class="form-group" v-show="power">
+								<div class="col-sm-offset-2 col-sm-10">
+									<button type="button" class="btn btn-default tag_save" @click="cameraSave($event)">~~confirm~~</button>
+									<button type="button" class="btn btn-default tag_del" @click="cameraFloatEditCancell">~~cancel~~</button>
+								</div>
+							</div>
+
+						</form>
+					</el-popover>
+
+							<!-- ~~setOrigin~~-->
+							<el-popover ref="popover_setOrigin" placement="right-end" :width="floatEditWidth" v-model="setOrigin.visible">
+
+							<form class="form-horizontal">
+								<div class="form-horizontal-anchor agreementDlg">~~setOrigin~~</div>
+								<!--<span class="close-btn form-horizontal-anchor-close" @click="setOrigin.visible = false"></span>-->
+								<span class="close-btn form-horizontal-anchor-close" @click="originCancel"></span>
+
+								<div class="form-group">
+									<label for="position" class="col-sm-3 control-label">~~coordinate~~</label>
+									<div class="col-sm-8">
+										<button class="form-group-set" @click.prevent="setOriginCoordinate" class="btn">~~setCoordinate~~</button>
+										<ul class="position-ul">
+											<li class="position-li">
+												<span>X</span>&nbsp&nbsp&nbsp
+												<input type="number" name="x" placeholder="m" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="setOrigin.edit.origin_x">
+
+												<span> &nbsp; &nbsp;Y</span>&nbsp&nbsp&nbsp
+												<input type="number" name="y" placeholder="m" style="width:60px;text-indent: 4px;border-radius: 4px;" :disabled="!power" v-model="setOrigin.edit.origin_y">
+											</li>
+										</ul>
+										<!-- <span>OR</span> -->
+
+									</div>
+								</div>
+
+								<div class="form-group" v-show="power">
+									<div class="col-sm-offset-2 col-sm-10">
+										<button type="button" class="btn btn-default anchor_save" @click="originSave($event)">~~confirm~~</button>
+										<button type="button" class="btn btn-default anchor_del" @click="originCancel">~~cancel~~</button>
+									</div>
+								</div>
+
+							</form>
+						</el-popover>
+						<!-- ~~cameraList~~ -->
+						<el-popover v-model='camera.showCameraList' ref="popover_tag" placement="right-end" width="220" class='camera-list-popover'>
+							<div class="form-horizontal-tag agreementDlg" style='margin-bottom:0px;'>~~cameraList~~</div>
+							<span class="close-btn form-horizontal-tag-close" @click="camera.showCameraList = false"></span>
+							<el-button class='camera-list-refresh' plain="" size='mini' type='info' @click='getCameraList' :disabled='camera.listLoading'>~~refresh~~</el-button>
+							<el-row v-for='item in camera.cameraList' :key='item.ip' class='camera-list-popover-row'>
+								<el-col :span="4" :offset="2">
+									<img :src="item.status?'../img/camera/camera_blue.png':'../img/camera/camera_gray.png'" alt="" class='camera-list-popover-img'>
+								</el-col>
+								<el-col :span="10" :offset="4">
+									<div class='camera-list-popover-ip-lable'>{{item.ip}}</div>
+								</el-col>
+							</el-row>
+						</el-popover>
+
+						
+						
+						<!-- statisticsList -->
+							<!-- ~~editTag~~-->
+							<el-popover class='statisticsList' ref="popover_tag" placement="right-end" width="300" max-height='600' v-model="statisticsListShow">
+								<div class="form-horizontal-tag agreementDlg">~~statisticsList~~{{statisticsList.length}})</div>
+								<span class="close-btn form-horizontal-tag-close" @click="cancelStatistics"></span>
+								<el-table :data="statisticsList" max-height='600'>
+										<el-table-column width="80" property="alias" label="~~alias2~~"></el-table-column>
+										<el-table-column width="100" property="code" label="code"></el-table-column>
+										<el-table-column width="100" property="status" label="~~status~~"></el-table-column>
+								</el-table>
+							</el-popover>
+
+
+
+					</section>
+				</div>
+
+				<!---history play -->
+				<div class="playHistorys" v-show="history.isShow">
+					<el-slider v-model="history.slider" :format-tooltip="historySliderMsg" @chang="historySlider" :max="history.max" :min="history.min" :step="history.step">
+					</el-slider>
+					<el-tooltip class="item" effect="dark" content="~~play~~" placement="top-start">
+						<span class="glyphicon glyphicon-play" @click="historyPlay('play')" aria-hidden="true"></span>
+					</el-tooltip>
+					<el-tooltip class="item" effect="dark" content="~~stop2~~" placement="top-start">
+						<span class="glyphicon glyphicon-pause" @click="historyPlay('pause')" aria-hidden="true"></span>
+					</el-tooltip>
+					<el-tooltip class="item" effect="dark" content="~~stop~~" placement="top-start">
+						<span class="glyphicon glyphicon-stop" @click="historyPlay('stop')" aria-hidden="true"></span>
+					</el-tooltip>
+					<el-tooltip class="item" effect="dark" content="~~slowRelease~~" placement="top-start">
+						<span class="glyphicon glyphicon-backward" @click="historyPlay('backward')" aria-hidden="true"></span>
+					</el-tooltip>
+					<el-tooltip class="item" effect="dark" content="~~quickRelease~~" placement="top-start">
+						<span class="glyphicon glyphicon-forward" @click="historyPlay('forward')" aria-hidden="true"></span>
+					</el-tooltip>
+				</div>
+
+				<!-- ~~mapQrcode~~ -->
+				<el-dialog :title="qrcode.title" :visible.sync="qrcode.visible" custom-class="qrcodeCss">
+					<div style="text-align:center;">
+						<div>2D</div>
+						<a :href="'59.110.241.137'+ '/map/map2d/svg/sim/?map='+user.projectCode+'_'+mapId+'&anony=super' " target="_blank">
+						<qrcode :value="'59.110.241.137'+ '/map/map2d/svg/sim/?map='+user.projectCode+'_'+mapId+'&anony=super' " tag="img" :options="{ size: 180}" style="margin:10px;width:200px;"></qrcode>
+						</a>
+						<!--<div>3D</div>-->
+						<!--<a :href="selfHost+ '/map/map3d/?map='+user.projectCode+'_'+mapId+'&anony=super' ">-->
+						<!--<qrcode :value="selfHost+ '/map/map3d/?map='+user.projectCode+'_'+mapId+'&anony=super' " tag="img" :options="{ size: 180}" style="margin:10px;width:200px;"></qrcode>-->
+						<!--</a>-->
+					</div>
+				</el-dialog>
+
+
+				<!-- ~~searchTagList~~ -->
+				<el-dialog title="~~searchTagList~~？" :visible.sync="search.tag.dialogVisible">
+
+					<template>
+						<el-table :data="search.tag.markers" :height="240" border="" style="width: 100%">
+
+							<el-table-column label="~~alias2~~" width="90">
+
+								<template scope="scope">
+									<el-button @click.native.prevent="searchTagLink(scope.row)" type="text" size="small">
+										{{ scope.row.alias }}
+									</el-button>
+								</template>
+							</el-table-column>
+
+							<el-table-column prop="code" label="~~coding~~" width="105">
+							</el-table-column>
+							<el-table-column prop="mac" label="MAC" width="105">
+							</el-table-column>
+							<el-table-column prop="powerLevel" label="~~electricity~~" width="70">
+							</el-table-column>
+							<el-table-column prop="coord" label="~~coordinate~~X,Y(m)" width="130">
+							</el-table-column>
+							<el-table-column label="~~currentMap~~" width="220">
+
+								<template scope="scope">
+									<el-button @click.native.prevent="searchMapLink(scope.row)" type="text" size="small">
+										{{ scope.row.mapCname }}
+									</el-button>
+								</template>
+
+							</el-table-column>
+							<el-table-column prop="lastPosTime" label="~~lastPosTime2~~" width="178">
+							</el-table-column>
+						</el-table>
+					</template>
+
+
+					<span slot="footer" class="dialog-footer">
+					<el-button type="primary" @click="search.tag.dialogVisible = false">~~con~~ ~~firm~~</el-button>
+				  </span>
+				</el-dialog>
+
+
+
+				<!-- ~~searchAnchorList~~ -->
+				<el-dialog title="~~searchAnchorList~~？" :visible.sync="search.anchor.dialogVisible">
+
+					<template>
+						<el-table :data="search.anchor.markers" :height="240" border="" style="width: 100%">
+
+							<el-table-column prop="alias" label="~~alias2~~" width="90">
+							</el-table-column>
+
+							<el-table-column prop="code" label="~~coding~~" width="105">
+							</el-table-column>
+							<el-table-column prop="mac" label="MAC" width="105">
+							</el-table-column>
+							<el-table-column prop="isMaster" label="~~type2~~" width="90">
+								<template scope="scope">
+									<span>{{ scope.row.isMaster > 0? "~~masterAnchor~~":"~~notMasterAnchor~~" }}</span>
+								</template>
+							</el-table-column>
+							<el-table-column prop="coord" label="~~coordinate~~X,Y(m)" width="130">
+							</el-table-column>
+							<el-table-column label="~~currentMap~~" width="220">
+								<template scope="scope">
+									<el-button @click.native.prevent="searchMapLink(scope.row)" type="text" size="small">
+										{{ scope.row.mapCname }}
+									</el-button>
+								</template>
+
+							</el-table-column>
+						</el-table>
+					</template>
+
+
+					<span slot="footer" class="dialog-footer">
+					<el-button type="primary" @click="search.anchor.dialogVisible = false">~~con~~ ~~firm~~</el-button>
+				  </span>
+				</el-dialog>
+
+			</div>
+			<!-- ~~workAttendance~~ -->
+			<el-dialog title='~~workAttendance~~' :visible.sync='attendance.dialogVisible' size='large'>
+				<el-row>
+					<el-col :span="4">
+						<span>~~map~~：{{attendance.mapCname}}</span>
+					</el-col>
+					<el-col :span="4">
+						<span>~~area~~：{{attendance.fenceCname}}</span>
+					</el-col>
+				</el-row>
+				<el-row>
+					<el-tabs type='border-card' v-model='attendance.selectTabId' @tab-click='attendanceCheckTab'>
+						<el-tab-pane v-for='(val,key,index) in attendance.datas' :name='val.id' :key='index' :label='val.text + "：" + val.number'>
+							<el-row>
+								<el-table v-if='val.show' :id='val.id' :data="val.data" type='expand' height="250">
+									<template slog-scope='scope'>
+										<el-table-column prop='code' label='code' width='160'></el-table-column>
+										<el-table-column prop='cname' label='~~alias2~~' width='160'></el-table-column>
+										<el-table-column prop='tagCat' label='~~tagGroup~~' width='100'></el-table-column>
+										<el-table-column prop='status' label='~~status~~' width='100'>
+											<template scope='scope'>
+												<span :class='scope.row.status === "~~offline~~"?"attendance-font-color-gray":scope.row.status === "~~notArrived~~"?"attendance-font-color":"attendance-font-color-blue"'>{{scope.row.status}}</span>
+											</template>
+										</el-table-column>
+										<el-table-column label='~~details~~'>
+											<template scope='scope'>
+												<el-button v-show='!scope.row.showDetails' @click='attendanceShowDetails(scope.row.code)' type='primary'>~~viewDetails~~</el-button>
+												<el-button v-show='scope.row.showDetails' @click='attendanceHideDetails(scope.row.code)' type='primary'>~~clickFold~~</el-button>
+												<div v-show='scope.row.showDetails' v-for='item in scope.row.details' class='attendance-details-list'>{{item}}</div>
+											</template>
+										</el-table-column>
+									</template>
+								</el-table>
+							</el-row>
+							<el-row>
+								<el-col :span="10" :offset="14">
+									<el-pagination background="" layout='sizes,prev,pager,next' :total='val.number' :page-sizes="[2,5,10,20,50,100]" :page-size='val.pageSize' :current-page="val.pageNum" @size-change='attendanceChangeSize($event,key)' @current-change='attendanceChangePage($event,key)'></el-pagination>
+								</el-col>
+							</el-row>
+						</el-tab-pane>
+					</el-tabs>
+				</el-row>
+			</el-dialog>
+			<!-- ~~anchorCoordinatesCalibrationGuide~~ -->
+			<el-dialog title="~~anchorCoordinatesCalibrationGuide~~" :visible.sync="adjustAnchor.dialog">
+
+				<el-collapse v-model="adjustAnchor.activeName" accordion="">
+					<el-collapse-item title="~~adjustAnchorStepOneNote~~" name="1">
+						<div style="color:red;">
+							* ~~dbclickUpdateAnchor~~
+						</div>
+						<div>
+							<template>
+								<el-table ref="adjustAnchorMultipleTable" :data="anchor.data" border="" max-height="240" tooltip-effect="dark" style="width: 100%" @row-dblclick="editItem" @row-click="selectItem" @selection-change="adjustAnchorSelectionChange">
+
+									<el-table-column type="selection" width="55">
+									</el-table-column>
+
+									<el-table-column prop="alias" label="~~name2~~" sortable="" width="90">
+									</el-table-column>
+
+									<el-table-column prop="code" label="~~code2~~" sortable="" width="120">
+									</el-table-column>
+
+
+									<el-table-column prop="x" label="X(cm)" sortable="" width="80">
+									</el-table-column>
+
+									<el-table-column prop="y" sortable="" label="Y(cm)" width="80">
+									</el-table-column>
+
+									<el-table-column prop="isMaster" label="~~type2~~" sortable="" width="90">
+										<template scope="scope">{{ scope.row.isMaster>0?'~~masterAnchor~~':'~~notMasterAnchor~~' }}</template>
+									</el-table-column>
+
+								</el-table>
+							</template>
+						</div>
+						<div style="float:right;margin:10px;">
+							<el-button @click="adjustAnchorOperate(1)" :loading="adjustAnchor.adjustAnchorStepOneBtn">~~next~~</el-button>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item title="~~anchorCoordinatesCalibration~~" name="2">
+						<div>
+							<el-form inline="" class="demo-form-inline">
+								<el-form-item>
+							<el-input placeholder="" size="mini" v-model="adjustAnchor.refCalDistance" disabled="">
+								<template slot="prepend">~~calcDistance~~(cm)</template>
+							</el-input>
+								</el-form-item>
+								<el-form-item>
+									<el-input placeholder="" size="mini" v-model="adjustAnchor.refRealDistance" disabled="">
+										<template slot="prepend">~~realLength~~(cm)</template>
+									</el-input>
+								</el-form-item>
+
+								<el-form-item>
+									<el-input placeholder="" v-model="adjustAnchor.refErrorDistance" size="mini" disabled="">
+										<template slot="prepend">~~error~~(cm)</template>
+									</el-input>
+								</el-form-item>
+							</el-form>
+						</div>
+						<div style="color:red;">
+							* ~~dbclickUpdateAnchor~~
+						</div>
+						<div><template>
+							<el-table ref="adjustAnchorSelectTable" :data="adjustAnchor.selects" border="" max-height="120" tooltip-effect="dark" style="width: 100%" @row-dblclick="editItem">
+
+								<el-table-column prop="alias" label="~~name2~~" sortable="" width="90">
+								</el-table-column>
+
+								<el-table-column prop="code" label="~~code2~~" sortable="" width="120">
+								</el-table-column>
+
+
+								<el-table-column prop="x" label="X" sortable="" width="80">
+								</el-table-column>
+
+								<el-table-column prop="y" sortable="" label="Y" width="80">
+								</el-table-column>
+
+								<el-table-column prop="isMaster" label="~~type2~~" sortable="" width="90">
+									<template scope="scope">{{ scope.row.isMaster>0?'~~masterAnchor~~':'~~notMasterAnchor~~' }}</template>
+								</el-table-column>
+
+							</el-table>
+						</template></div>
+						<div style="float:right;margin:10px;">
+							<el-button @click="adjustAnchorOperate(-1)">~~last~~</el-button>
+							<el-button @click="adjustAnchorOperate(2)" :loading="adjustAnchor.adjustAnchorStepTwoBtn">~~next~~</el-button>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item title="~~adjustingAnchor~~" name="3">
+						<div>
+							<el-form inline="" class="demo-form-inline">
+								<el-form-item label="~~referenceAnchor~~1">
+									{{adjustAnchor.selects[0]?adjustAnchor.selects[0].code:''}}
+								</el-form-item>
+								<el-form-item label="~~referenceAnchor~~2">
+									{{adjustAnchor.selects[1]?adjustAnchor.selects[1].code:''}}
+								</el-form-item>
+							</el-form>
+						</div>
+						<div style="color:red;">
+							* ~~pageNote~~
+						</div>
+						<template>
+							<el-table :data="adjustAnchor.datas" style="width: 100%">
+
+								<el-table-column prop="alias" label="~~name2~~" sortable="" width="90">
+								</el-table-column>
+
+								<el-table-column prop="code" label="~~code2~~" sortable="" width="120">
+								</el-table-column>
+
+
+								<!--<el-table-column-->
+										<!--prop="xy"-->
+										<!--label="~~presentCoord~~(x,y)"-->
+										<!--sortable-->
+										<!--width="120">-->
+								<!--</el-table-column>-->
+
+								<el-table-column prop="calcDistance0" label="~~calcDistance0~~" sortable="" width="120">
+								</el-table-column>
+
+								<el-table-column prop="calcDistance1" sortable="" label="~~calcDistance1~~" width="120">
+								</el-table-column>
+
+								<el-table-column prop="adjust_xy" label="~~adjectingCoord~~(x,y)">
+								</el-table-column>
+
+								<el-table-column fixed="right" width="125" label="~~operating~~">
+									<template scope="scope">
+										<el-button @click="adjustAnchorDo(scope.row)" size="small">~~calibration~~</el-button>
+									</template>
+								</el-table-column>
+							</el-table>
+						</template>
+						<div style="float:right;margin:10px;">
+							<el-button @click="adjustAnchorOperate(-1)">~~last~~</el-button>
+							<el-button type="primary" @click="adjustAnchorOperate(3)">~~commit~~</el-button>
+						</div>
+					</el-collapse-item>
+				</el-collapse>
+			</el-dialog>
+
+
+			<!--~~mapAngle~~-->
+			<div class="rotate_wrap" style="display:block">
+			<div class="rotate_wrap_all">
+                <div class="button_rotate">
+					
+                    <!-- <div class="button_rotate_up" @click="mapRotate('up')"></div>
+                    <div class="button_rotate_right" @click="mapRotate('right')"></div>
+                    <div class="button_rotate_origin" @click="mapRotate('origin')"></div>
+                    <div class="button_rotate_bottom" @click="mapRotate('bottom')"></div>
+					<div class="button_rotate_left" @click="mapRotate('left')"></div> -->
+					
+					<!-- <div class="button_rotate_up"></div> -->
+					<!-- <div class="button_rotate_right"></div> -->
+					<el-tooltip class="item" effect="dark" :content="String(rotate)" placement="top-start">
+						<!-- <div class="button_rotate_origin" :style="rotateAngle"></div> -->
+						<div class="button_rotate_origin"></div>
+					</el-tooltip>
+                    <!-- <div class="button_rotate_bottom"></div> -->
+					<!-- <div class="button_rotate_left"></div> -->
+				</div>
+				<div class="northMark"></div>
+			</div>
+            </div>
+
+
+			<!-- ~~zoom~~ --->
+			<div class="button_scal">
+				<div class="button_scal_btn button_scal_add" @click="zoomEnlarge">+</div>
+				<div class="button_scal_btn button_scal_sub" @click="zoomReduce">-</div>
+			</div>
+
+
+			<div class="company">
+				<!-- ~~realTimeCoord~~ -->
+				<div class="coordinate" v-show="switchData.isShowCoordinate">
+					<p>~~realCoord~~m：(X: &nbsp;<span class="relX">0</span>,Y:&nbsp;<span class="relY">0</span>)&nbsp;&nbsp;</p>
+					<p>~~screenCoord~~px：(X: &nbsp;<span class="x">0</span>,Y:&nbsp;<span class="y">0</span>)</p> <!-- &nbsp;&nbsp;~~scaling~~:&nbsp;<span class="zoom">1.0</span> -->
+				</div>
+
+				{{projectDesc}}
+			</div>
+
+
+		</div>
+
+
+		<div class="wrapper" id="wrapper">
+			<div class="main">
+				<div class="paper" id="wrapper_paper">
+					<div id="mapSvg"></div>
+				</div>
+
+			</div>
+		</div>
+
+		<div id="normal_jqxNotification">
+			<div id="normal_jqxNotification_tip"></div>
+		</div>
+
+		<div id="fenceAlert_jqxNotification">
+			<div id="fenceAlert_jqxNotification_tip"></div>
+			<input type="hidden" id="fenceAlert_jqxNotification_tag">
+		</div>
+
+		<div id="sos_jqxNotification">
+			<div id="sos_jqxNotification_tip"></div>
+			<input type="hidden" id="sos_jqxNotification_tag">
+		</div>
+
+		<div id="aggregate_jqxNotification">
+			<div id="aggregate_jqxNotification_tip"></div>
+			<input type="hidden" id="aggregate_jqxNotification_tag">
+		</div>
+		<div id="stillness_jqxNotification">
+			<div id="stillness_jqxNotification_tip"></div>
+			<input type="hidden" id="stillness_jqxNotification_tag">
+		</div>
+		<div id="heartAlert_jqxNotification">
+			<div id="heartAlert_jqxNotification_tip"></div>
+			<input type="hidden" id="heartAlert_jqxNotification_tag">
+		</div>
+
+		<div id="forceRemove_jqxNotification">
+			<div id="forceRemove_jqxNotification_tip"></div>
+			<input type="hidden" id="forceRemove_jqxNotification_tag">
+		</div>
+
+		<div id="moreMonitor_jqxNotification">
+			<div id="moreMonitor_jqxNotification_tip"></div>
+			<input type="hidden" id="moreMonitor_jqxNotification_tag">
+		</div>
+
+		<div id="distanceAlert_jqxNotification">
+			<div id="distanceAlert_jqxNotification_tip"></div>
+			<input type="hidden" id="distanceAlert_jqxNotification_tag">
+		</div>
+
+		<footer class="footer">
+			<script src="lib/spline.js"></script>
+			<script src="lib/simplify.js"></script>
+			<script src='attendance/attendance.js'></script>
+			<script src='../../../common/js/moment.min.js'></script>
+			<script type="text/javascript" src="bin/common.min.js" defer=""></script>
+			<script type="text/javascript" src="../../../common/js/raphael.pan-zoom.js" defer=""></script>
+			<script type="text/javascript" src="../../../common/js/raphael-markers.js" defer=""></script>
+			<script type="text/javascript" src="../../../common/plugins/vue-qrcode/docs/js/vue-qrcode.js" defer=""></script>
+
+			<script type="text/javascript" src="../../../common/plugins/jqx/jqxcore.js" defer=""></script>
+			<script type="text/javascript" src="../../../common/plugins/jqx/jqxnotification.js" defer=""></script>
+
+			<script type="text/javascript" src="../../../common/js/comm.js" defer=""></script>
+			<script type="text/javascript" src="../../../common/js/alert.js" defer=""></script>
+
+			<script type="text/javascript" src="../../../common/js/session-check.js" defer=""></script>
+
+			<script type="text/javascript" src="../../common/service.js" defer=""></script>
+			<script type="text/javascript" src="lib/marker-2.2.js" defer=""></script>
+
+			<script type="text/javascript" src="../../common/data-2.2.js" defer=""></script>
+			<script type="text/javascript" src="../../common/dataManager-2.3.js" defer=""></script>
+			<script type="text/javascript" src="../../common/privCheck.js" defer=""></script>
+			<script type="text/javascript" src="../../common/websocket-2.1.js" defer=""></script>
+			<script type="text/javascript" src="../../common/sysAlert.js" defer=""></script>
+
+			<script type="text/javascript" src="lib/fence.js" defer=""></script>
+			<script type="text/javascript" src="lib/camera.js" defer=""></script>
+			<script type="text/javascript" src="../css.js" defer=""></script>
+
+			<script type="text/javascript" src="lib/eventInit.js" defer=""></script>
+			<script type="text/javascript" src="../public/vsn-1.0.js" defer=""></script>
+
+			<script type="text/javascript" src="lib/raphaeInit-2.3.js" defer=""></script>
+			<script type="text/javascript" src="../public/comVue-2.3.js" defer=""></script>
+ 			<script type="text/javascript" src="lib/svgVue-2.3.js" defer=""></script>
+			<script type="text/javascript" src="../public/vue-2.1.js" defer=""></script>
+
+			<script type="text/javascript" src="lib/index-2.5.js" defer=""></script>
+
+			<!--<script type="text/javascript" src="../../../common/plugins/highcharts/highcharts.js" defer></script>-->
+			<!--<script type="text/javascript" src="../../../highcharts/highcharts.js" defer></script>-->
+			<!--<script type="text/javascript" src="../../../highcharts/modules/exporting.js" defer></script>-->
+			<!--<script type="text/javascript" src="../../../highcharts-plugins/highcharts-zh_CN.js" defer></script>-->
+
+		</footer>
+
+</body>
+</html>
+

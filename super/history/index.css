@@ -1,0 +1,54 @@
+.timeType {
+    float: left;
+}
+.el-form-item__label {
+    width: 100px !important;
+    line-height: 1.5 !important;
+}
+.el-form-item__content {
+    margin-left: 100px !important;
+    line-height: 46px !important;
+}
+.demonstration {
+    text-align: right;
+    vertical-align: middle;
+    float: left;
+    font-size: 14px;
+    color: #48576a;
+    line-height: 1.5;
+    padding: 11px 12px 11px 0;
+    box-sizing: border-box;
+    margin-left: 26px;
+}
+.el-input__icon+.el-input__inner {
+    padding-right: 3px !important;
+}
+.ss {
+    float: left;
+}
+.ss .el-form-item__label{
+    width: 70px !important;
+    line-height: 1.5 !important;
+}
+.ss .el-form-item__content {
+    margin-left: 70px !important;
+    line-height: 46px !important;
+}
+
+#historytoolbar .el-form-item{
+    margin:10px 0 0 0 !important;
+}
+
+@media screen and (min-width: 1080px){
+    .pull-left {
+        width: 80% !important;
+    }
+}
+@media screen and (min-width: 800px) and (max-width: 1080px){
+    .pull-left {
+        width: 100% !important;
+    }
+    .pull-right {
+        display: none;
+    }
+}

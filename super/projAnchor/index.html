@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en" style="padding: 10px;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>~~title~~</title>
+
+	
+	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+	<link rel="stylesheet" href="index.css">
+	<link rel="stylesheet" href="../cfg/cfg.css">
+
+	<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+
+	<script type="text/javascript" src="../../common/js/comm.js"></script>
+	<script type="text/javascript" src="../../common/js/session-check.js"></script>
+
+
+	<script>
+        /**
+         * 全局变量
+         */
+        var ME = {
+            //访问路径
+            baseUrl : '/',
+            //请求的服务器地址
+            host: UBIT.host,
+            imgHost: UBIT.imgHost,
+            user: UBIT.user,
+            api_token: UBIT.api_token,
+            vm: null,
+            pageType:'super',
+			addAnchors:null,
+		};
+		var pageName = 'anchor';
+		UBIT.initLang(pageName);
+	</script>
+
+</head>
+<body>
+
+<div id="app" v-cloak="">
+
+	<div id="anchortoolbar">
+		<el-button type="info" size="small" @click="addAnchor">~~add~~</el-button>
+		<el-button type="warning" size="small" @click="updateAnchor">~~updateAnchor~~</el-button>
+		<el-button type="danger" size="small" @click="deleteAnchor" :loading="deleteBtnDisable">~~deleteAnchor~~</el-button>
+
+		<el-button type="warning" size="small" @click="updateAnchorMore">~~updateAnchorMore~~</el-button>
+		<el-button type="primary" size="small" @click="syncAnchors" :loading="syncAllAnchorBtnDisable">批量同步</el-button>
+		<el-button type="danger" size="small" @click="rebootAnchors" :loading="rebootBtnDisable">批量重启</el-button>
+		<el-button type="warning" size="small" @click="settings" :loading="settingsBtnDisable">~~settings~~</el-button>
+		<el-button type="warning" size="small" @click="getOTAFileList" :loading="otaBtnDisable">批量OTA</el-button>
+
+		<el-button type="info" size="small" @click="updateSignalQuality" :loading="updateSignalQualityBtnDisable">~~updateSignalQuality~~</el-button>
+
+		<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('anchorTable', true);">~~exports~~</el-button>
+		<el-button type="info" size="small" @click="setCf">~~setMapCf~~</el-button>
+
+	</div>
+
+	<table id="anchorTable"></table>
+
+	<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
+		<el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="120px" class="demo-ruleForm">
+
+			<el-tabs type="card">
+
+				<el-tab-pane label="~~basicCfg~~">
+
+					<el-checkbox-group v-model="basicSelected" @change="selectedChange">
+
+					<el-form-item label="~~macRange~~" prop="code_start" v-show="form.action=='add'">
+						<el-input type="text" v-model="form.code_start" auto-complete="off" placeholder="~~start~~"></el-input>
+						-
+						<el-input type="text" v-model="form.code_end" auto-complete="off" placeholder="~~end~~"></el-input>
+					</el-form-item>
+
+					<el-form-item label="~~anchorNumber~~" prop="anchor_num" v-show="form.action=='add'">
+						<el-input type="text" v-model="form.anchor_num" auto-complete="off" :disabled="true"></el-input>
+					</el-form-item>
+
+					<el-form-item label="~~code~~" prop="code" v-show="form.action=='update'">
+							<el-input type="text" v-model="form.code" :disabled="true" auto-complete="off"></el-input>
+					</el-form-item>
+
+					<el-form-item label="~~productId~~" prop="productId">
+						<el-checkbox label="productId" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.productId" filterable="" placeholder="~~select~~">
+							<el-option v-for="item in products" :key="item.id" :label="item.cname" :value="item.id+''">
+								<span style="float: left">{{ item.cname }}</span>
+								<span style="float: right; color: #8492a6; font-size: 13px">{{ item.description }}</span>
+							</el-option>
+						</el-select>
+							</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~mapId~~" prop="mapId">
+						<el-checkbox label="mapId" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.mapId" placeholder="~~select~~" filterable="" @change="setMasterMac">
+							<el-option v-for="item in maps" :key="item.id" :label="item.cname" :value="item.id+''">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~algorithm~~" prop="algorithm">
+						<el-checkbox label="algorithm" v-bind:class="{isHide:form.action=='add'}">
+							<el-select v-model="form.algorithm" filterable="" placeholder="~~select~~" @change="setMinNum">
+								<el-option v-for="item in algorithms" :key="item.name" :label="item.name" :value="item">
+								</el-option>
+							</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~min_num~~" prop="min_num">
+						<el-checkbox label="min_num" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" min="0" step="1" placeholder="~~min_num~~" v-model="form.min_num" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~anchor_signal~~" prop="anchor_signal" v-if="form.algorithm=='TDOA_0D_V10'|| form.algorithm.name=='TDOA_0D_V10'">
+						<el-checkbox label="anchor_signal" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" min="-120" step="0.1" placeholder="~~anchor_signal~~" v-model="form.anchor_signal" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~alias~~" prop="alias" v-show="isShowAliasInput">
+						<el-checkbox label="alias" v-bind:class="{isHide:form.action=='add'}">
+							<el-input type="text" v-model="form.alias" :maxlength="24" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-form-item>
+					<el-form-item label="~~color~~" prop="color">
+						<el-checkbox label="color" v-bind:class="{isHide:form.action=='add'}">
+							<el-input type="color" v-model="form.color" auto-complete="off" style="width: 100%;"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~cood~~" prop="xyz" class="cood">
+						<el-checkbox label="x" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" min='0' step="0.001" placeholder="x" v-model="form.x" auto-complete="off"></el-input>
+
+						<el-checkbox label="y" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" min='0' step="0.001" placeholder="y" v-model="form.y" auto-complete="off"></el-input>
+
+						<el-checkbox label="z" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" min='0' step="0.001" placeholder="z" v-model="form.z" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-checkbox></el-checkbox></el-form-item>
+
+					<el-form-item label="~~direction~~" prop="direction">
+						<el-checkbox label="direction" v-bind:class="{isHide:form.action=='add'}">
+							<el-input v-model="form.direction" placeholder="0 - 360"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~lonlat~~" prop="lonlat" class="cool" v-show="au">
+						<el-checkbox label="lon" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" step='0.00001' v-model="form.lon" placeholder="~~longitude~~" auto-complete="off"></el-input>
+
+						<el-checkbox label="lat" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" step='0.00001' v-model="form.lat" placeholder="~~latitude~~" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-checkbox></el-form-item>
+
+					<el-form-item label="~~netType~~" prop="netType">
+						<el-checkbox label="netType" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.netType" placeholder="~~select~~" filterable="">
+							<el-option v-for="item in netType" :key="item.code" :label="item.cname" :value="item.code">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~delay~~" prop="rxDelaytxDelay" class="cool">
+						<el-checkbox label="rxDelay@txDelay" v-bind:class="{isHide:form.action=='add'}">
+						<el-input type="number" step='0.0001' v-model="form.rxDelay" placeholder="rx" auto-complete="off" :disabled="false"></el-input>
+						<el-input type="number" step='0.0001' v-model="form.txDelay" placeholder="tx" auto-complete="off" :disabled="false"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~swVersion~~" prop="swVersion" v-show="au">
+						<el-input type="text" v-model="form.swVersion" auto-complete="off" :disabled="true"></el-input>
+					</el-form-item>
+
+					<el-form-item label="~~hwVersion~~" prop="hwVersion" v-show="au">
+						<el-input type="text" v-model="form.hwVersion" auto-complete="off" :disabled="true"></el-input>
+					</el-form-item>
+
+					<el-form-item label="~~kerVersion~~" prop="kerVersion" v-show="au">
+						<el-input type="text" v-model="form.kerVersion" auto-complete="off" :disabled="true"></el-input>
+					</el-form-item>
+
+					<el-form-item label="已选基站" v-show="isShowCode">
+						<el-input type="textarea" v-model="form.codes" readonly="" :autosize="{ minRows: 2, maxRows: 4}"></el-input>
+					</el-form-item>
+
+					</el-checkbox-group>
+
+					<div v-if="form.action=='update' || form.action=='updateMore'" style="clear:both;text-align:center;margin:10px;">
+						<el-checkbox v-model="checkAllUpdate" @change="handleCheckAllChangeUpdate">~~selectAll~~</el-checkbox>
+						<el-button type="warning" size="small" @click="updateAnchorDo" :loading="updateBtnDisable">~~updateAnchor~~</el-button>
+					</div>
+
+					<div v-show="form.action=='add'" style="clear:both;text-align:center;">
+						<el-button type="primary" size="small" @click="addDo('add')" :loading="addBtnDisable">~~submit~~</el-button>
+					</div>
+
+				</el-tab-pane>
+
+				<el-tab-pane label="~~anchorOptions~~">
+
+					<el-checkbox-group v-model="anchorSetSelected" @change="selectedChange">
+
+					<el-form-item label="~~isShowWifi~~" prop="isShowWifi" v-show="au">
+						<el-checkbox label="isShowWifi" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isShowWifi">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~isRangeWithTag~~" prop="isRangeWithTag">
+						<el-checkbox label="isRangeWithTag" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isRangeWithTag">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~isMaster~~" prop="isMaster" v-show="au">
+						<el-checkbox label="isMaster" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isMaster">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+					<!--可搜索-->
+					<el-form-item label="~~masterList~~" prop="masterList" v-show="au">
+						<el-checkbox label="masterList" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.masterList" multiple="" placeholder="~~select~~" filterable="">
+							<el-option v-for="item in aboutMapMaster" :key="item" :label="item" :value="item">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+						<el-form-item label="~~anchorSlotWidth~~" prop="anchorSlotWidth">
+							<el-checkbox label="anchorSlotWidth" v-bind:class="{isHide:form.action=='add'}">
+								<el-input v-model="form.anchorSlotWidth" @change="checksAnchorSlot" placeholder="0 - 65535"></el-input>
+							</el-checkbox>
+						</el-form-item>
+						<el-form-item label="~~anchorSlotTotalNum~~" prop="anchorSlotTotalNum">
+							<el-checkbox label="anchorSlotTotalNum" v-bind:class="{isHide:form.action=='add'}">
+								<el-input v-model="form.anchorSlotTotalNum" @change="checksAnchorSlot" placeholder="0 - 65535"></el-input>
+							</el-checkbox>
+						</el-form-item>
+						<el-form-item label="~~anchorSlotSeqNum~~" prop="anchorSlotSeqNum">
+							<el-checkbox label="anchorSlotSeqNum" v-bind:class="{isHide:form.action=='add'}">
+								<el-input v-model="form.anchorSlotSeqNum" @change="checksAnchorSlot" placeholder="0 - 65535"></el-input>
+							</el-checkbox>
+						</el-form-item>
+
+					<el-form-item label="~~txPower~~" prop="txPower">
+						<el-checkbox label="txPower" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.txPower" filterable="" clearable="" allow-create="" filterable="" placeholder="~~txPower~~">
+							<el-option v-for="item in txPowers" :key="item" :label="item" :value="item">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~synFreq~~" prop="synFreq">
+						<el-checkbox label="synFreq" v-bind:class="{isHide:form.action=='add'}">
+						<el-input-number v-model="form.synFreq" :step="1"></el-input-number>
+						</el-checkbox>
+					</el-form-item>
+
+					</el-checkbox-group>
+				
+					<div v-show="form.action=='update' || form.action=='updateMore'" style="clear:both;text-align:center;margin:10px;">
+						<el-button type="warning" size="small" @click="setAnchors" :loading="setToAnchorBtnDisable">~~setToAnchor~~</el-button>
+					</div>
+
+				</el-tab-pane>
+
+				<el-tab-pane label="~~debugMode~~">
+
+					<el-checkbox-group v-model="debugSelected" @change="selectedChange">
+
+					<el-form-item label="~~synModel~~" prop="synModel">
+						<el-checkbox label="synModel" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.synModel" placeholder="~~select~~" filterable="">
+							<el-option v-for="item in synModels" :key="item" :label="item" :value="item">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~isTagMode~~" prop="isTagMode" v-show="au">
+						<el-checkbox label="isTagMode" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.isTagMode">
+							<el-radio label="1">~~true~~</el-radio>
+							<el-radio label="0">~~false~~</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+
+					</el-checkbox-group>
+
+					<div v-show="form.action=='update' || form.action=='updateMore'" style="clear:both;text-align:center;">
+						<el-button type="primary" size="small" @click="setDebugModel" :loading="setSynModelBtnDisable">~~setSynModel~~</el-button>
+					</div>
+
+				</el-tab-pane>
+
+				<el-tab-pane label="~~thresholds~~">
+
+					<!-- <el-checkbox-group v-model="nlosThresholdsSelected"  @change="selectedChange"> -->
+
+					<el-form-item label="rssi">
+						<!-- <el-checkbox label="thresholds@rssi" v-bind:class="{isHide:form.action=='add'}"> -->
+						<el-input v-model="thresholds.rssi" placeholder="~~anchor_signal~~"></el-input>
+						<!-- </el-checkbox> -->
+					</el-form-item>
+					<el-form-item label="mc">
+						<!-- <el-checkbox label="thresholds@mc" v-bind:class="{isHide:form.action=='add'}"> -->
+						<el-input v-model="thresholds.mc" placeholder="Channel Impulse Response and Dynamic Range"></el-input>
+						<!-- </el-checkbox> -->
+					</el-form-item>
+					<el-form-item label="rxFp">
+						<!-- <el-checkbox label="thresholds@rxFp" v-bind:class="{isHide:form.action=='add'}"> -->
+						<el-input v-model="thresholds.rxFp" placeholder="~~thresholdsRxFp~~"></el-input>
+						<!-- </el-checkbox> -->
+					</el-form-item>
+					<el-form-item label="PrNlos">
+						<!-- <el-checkbox label="thresholds@PrNlos" v-bind:class="{isHide:form.action=='add'}"> -->
+						<el-input v-model="thresholds.PrNlos" placeholder="Probability of NLOS"></el-input>
+						<!-- </el-checkbox> -->
+					</el-form-item>
+					<!-- </el-checkbox-group> -->
+
+					<div v-show="form.action=='update' || form.action=='updateMore'" style="clear:both;text-align:center;">
+						<el-button type="warning" size="small" @click="setThreshold" :loading="setThresholdBtnDisable">~~setThresholds~~</el-button>
+					</div>
+
+				</el-tab-pane>
+
+				<el-tab-pane label="~~uwbNetwork~~">
+
+					<el-checkbox-group v-model="uwbNetworkSelected" @change="selectedChange">
+
+					<el-form-item label="~~anchorMode~~" prop="uwbNetMode">
+						<el-checkbox label="uwbNetMode" v-bind:class="{isHide:form.action=='add'}">
+						<el-radio-group v-model="form.uwbNetMode">
+							<el-radio label="1">~~gate~~</el-radio>
+							<el-radio label="2">~~node~~</el-radio>
+						</el-radio-group>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~nodeList~~" prop="nodeList" v-show="form.uwbNetMode==1">
+						<el-checkbox label="uwbNetNodeList" v-bind:class="{isHide:form.action=='add'}">
+						<el-select v-model="form.uwbNetNodeList" multiple="" placeholder="~~select~~" filterable="">
+							<el-option v-for="item in aboutMapNode" :key="item" :label="item" :value="item">
+							</el-option>
+						</el-select>
+						</el-checkbox>
+					</el-form-item>
+
+					<el-form-item label="~~nodeDelay~~" class="cool" v-show="form.uwbNetMode==2">
+						<el-checkbox label="uwbNetSort@uwbNetDelay" v-bind:class="{isHide:form.action=='add'}">
+							<el-input type="number" min='1' max="20" step="1" placeholder="~~nodeSort~~" v-model="form.uwbNetSort" auto-complete="off"></el-input>
+							<el-input type="number" min='1' max="100" step="1" placeholder="~~nodeDelay~~" v-model="form.uwbNetDelay" auto-complete="off"></el-input>
+						</el-checkbox>
+					</el-form-item>
+
+					</el-checkbox-group>
+
+					<div v-show="form.action=='update' ||　form.action=='updateMore'" style="clear:both;text-align:center;">
+						<el-button type="primary" size="small" @click="setUwbNetModel" :loading="setUwbNetModelBtnDisable">~~setting~~</el-button>
+					</div>
+
+				</el-tab-pane>
+
+				<el-tab-pane label="~~transmitSet~~">
+						<el-form-item label="~~channel~~" prop="channel">
+								<el-select v-model="form.channel" placeholder="~~select~~" filterable="">
+									<el-option v-for="item in channelType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+							<el-form-item label="~~frameType~~" prop="frameType">
+								<el-select v-model="form.frameType" placeholder="~~select~~" filterable="">
+									<el-option v-for="item in frameTypeType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+							<el-form-item label="crc" prop="crc">
+								<el-input-number v-model="form.crc" :step="1" :min="0"></el-input-number>
+							</el-form-item>
+		
+							<el-form-item label="~~dataRate~~" prop="dataRate">
+								<el-select v-model="form.dataRate" placeholder="~~select~~" filterable="">
+									<el-option v-for="item in dataRateType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+							<el-form-item label="~~pacSize~~" prop="pacSize">
+								<el-select v-model="form.pacSize" placeholder="~~select~~" filterable="">
+									<el-option v-for="item in pacSizeType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+							<el-form-item label="~~pulseFrequency~~" prop="pulseFrequency">
+								<el-select v-model="form.pulseFrequency" placeholder="~~select~~" filterable="">
+									<el-option v-for="item in pulseFrequencyType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+		
+							<el-form-item label="~~preambleCode~~" prop="preambleCode">
+								<el-select v-model="form.preambleCode" placeholder="~~select~~">
+									<el-option v-for="item in preambleCodeType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+		
+							<el-form-item label="~~preambleLength~~" prop="preambleLength">
+								<el-select v-model="form.preambleLength" placeholder="select">
+									<el-option v-for="item in preambleLengthType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+							<el-form-item label="smartPower" prop="smartPower">
+								<el-select v-model="form.smartPower" placeholder="select" filterable="">
+									<el-option v-for="item in smartPowerType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+		
+							<el-form-item label="frameCheck" prop="frameCheck">
+								<el-select v-model="form.frameCheck" placeholder="select" filterable="">
+									<el-option v-for="item in frameCheckType" :key="item.code" :label="item.cname" :value="item.code">
+									</el-option>
+								</el-select>
+							</el-form-item>
+						<div v-show="form.action=='update'|| form.action=='updateMore'" style="clear:both;text-align:center;">
+							<el-button type="warning" size="small" @click="setTransmit" :loading="setToAnchorBtnDisable">~~setting~~</el-button>
+						</div>
+				</el-tab-pane>
+			</el-tabs>
+
+			<!--</el-checkbox-group>-->
+
+		</el-form>
+
+	</el-dialog>
+
+
+	<el-dialog title="~~selectOtaFile~~" :visible.sync="otaFileListVisible" append-to-body="">
+		<el-table :data="otaFileList" style="width: 100%" max-height="300">
+			<el-table-column label="ID" prop="id"></el-table-column>
+			<el-table-column label="~~ver_name~~" prop="ver_name"></el-table-column>
+			<el-table-column label="~~ver_type~~" prop="ver_type"></el-table-column>
+			<el-table-column label="~~soft_version~~" prop="soft_version"></el-table-column>
+			<el-table-column label="~~hard_version~~" prop="hard_version"></el-table-column>
+			<el-table-column label="~~kernel_version~~" prop="kernel_version"></el-table-column>
+			<el-table-column label="~~otaSelect~~" inline-template="">
+				<el-button type="success" size="mini" @click="startOTA(row.id)" :loading="otaBtnDisable">~~upgrade~~</el-button>
+			</el-table-column>
+		</el-table>
+		<el-card v-show="otaProgress" style="margin-top:10px;">
+			<div v-for="item in otaAnchors" :key="item.mac">
+				<span>{{item.msg}}</span>
+				<el-progress :percentage='item.ratio' :status="item.status"></el-progress>
+			</div>
+		</el-card>
+	</el-dialog>
+
+
+	<el-dialog :title="cfForm.title" :visible.sync="cfFormVisible" width="80%" id='cfForm' class="phone_b">
+		<el-form :inline="true" :model="cfForm" ref="cfForm" class="demo-form-inline" label-width="300px">
+			<ul>
+				<li>
+					<el-form-item label="KEY">
+						<el-select v-model="cfForm.key" filterable="" placeholder="~~select~~" allow-create="" default-first-option="" @change="showDes">
+							<el-option v-for="item in filterCfconf" :key="item.key" :label="item.key" :value="item.key">
+								<span style="float: left">{{ item.key }}</span>
+								<span style="float: right; color: #8492a6; font-size: 13px">{{ item.des }}</span>
+							</el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="VALUE">
+						<el-input v-model="cfForm.value" placeholder="value"></el-input>
+					</el-form-item>
+					<el-form-item label="~~description~~">
+						<el-input v-model="cfForm.desc" placeholder="~~descriptionPla~~"></el-input>
+					</el-form-item>
+					<el-form-item class="cfBtn">
+						<el-button @click="addRow">+</el-button>
+					</el-form-item>
+				</li>
+				<li v-for="item in cfForm.cfg">
+					<el-form-item label="KEY">
+						<el-select v-model="item.key" filterable="" placeholder="~~select~~" allow-create="" default-first-option="" @change="showNewItemDes(item)">
+							<el-option v-for="i in filterCfconf" :key="i.key" :label="i.key" :value="i.key">
+								<span style="float: left">{{ i.key }}</span>
+								<span style="float: right; color: #8492a6; font-size: 13px">{{ i.des }}</span>
+							</el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="VALUE">
+						<el-input v-model="item.value" placeholder="value"></el-input>
+					</el-form-item>
+					<el-form-item label="~~description~~">
+						<el-input v-model="item.desc" placeholder="~~descriptionPla~~"></el-input>
+					</el-form-item>
+					<el-form-item class="cfBtn">
+						<el-button @click="removeRow(item)">-</el-button>
+					</el-form-item>
+				</li>
+				<li>
+					<el-form-item id="subCf">
+						<el-button type="primary" @click="cfSubmit('cfForm','super/anchor/updateCfg/')">~~submit~~</el-button>
+					</el-form-item>
+				</li>
+			</ul>
+		</el-form>
+	</el-dialog>
+
+
+</div>
+
+
+<footer>
+	<script type="text/javascript" src="../cfg/method.js"></script>
+	<script type="text/javascript" src="../cfg/anchorConf.js"></script>
+	<script type="text/javascript" src="common.js"></script>
+	<script type="text/javascript" src="index-2.0.js"></script>
+</footer>
+
+</body>
+</html>

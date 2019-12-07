@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+<!-- <link rel="stylesheet" href="../../common/plugins/highcharts/highcharts.css"> -->
+<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+<link rel="stylesheet" href="proj_home.css">
+
+	<title>首页</title>
+
+
+<script type="text/javascript" src="../../common/bin/super.common.min.js"></script>
+<script type="text/javascript" src="../../common/js/comm.js"></script>
+<script type="text/javascript" src="../../common/js/session-check.js"></script>
+<!-- <script type='text/javascript' src="../../common/plugins/highcharts/highcharts_6.js"></script>
+<script type='text/javascript' src="../../common/plugins/highcharts/highcharts-more.js"></script>
+<script type='text/javascript' src="../../common/plugins/highcharts/solid-gauge.js"></script>
+<script type='text/javascript' src="../../common/plugins/highcharts/drilldown.js"></script> -->
+<script src="http://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+<script src="http://cdn.highcharts.com.cn/highcharts/highcharts-more.js"></script>
+<script src="http://cdn.highcharts.com.cn/highcharts/modules/solid-gauge.js"></script>
+<script src="http://cdn.highcharts.com.cn/highcharts/modules/drilldown.js"></script>
+<script src="http://cdn.highcharts.com.cn/highcharts/modules/no-data-to-display.js"></script>
+<!-- <script type='text/javascript' src="../../common/plugins/highcharts/highcharts.js"></script> -->
+<!-- <script type='text/javascript' src="../../common/plugins/highcharts/highcharts.js"></script> -->
+<!-- <script type='text/javascript' src="../../highcharts/modules/no-data-to-display.js"></script> -->
+<script>
+
+	/**
+	 * 全局变量
+	 * @type {{vm: null, user: {}, host: string}}
+	 */
+	var ME = {
+		vm: null,
+		user: UBIT.user,
+		// host: '/',
+		baseUrl : '/',
+        selfHost: UBIT.selfHost,
+        //请求的服务器地址
+        host: UBIT.host,
+	};
+
+</script>
+</head>
+<body>
+
+<div id="container">
+<div class="overview">
+	<div class="overview_wrap">
+		<div class="pdout">
+			<div class="overview_item overview_tag">
+				<p class="p_title"><span></span>手环数量</p>
+				<p class="p_overview"><img src="img/tag.png" alt="">{{total.tag}}<span>(个)</span></p>
+			</div>
+		</div>
+		<div class="pdout">
+			<div class="overview_item overview_anchor">
+					<p class="p_title"><span></span>基站数量</p>
+					<p class="p_overview"><img src="img/anchor.png" alt="">{{total.anchor}}<span>(个)</span></p>
+			</div>
+		</div>
+		<div class="pdout">
+			<div class="overview_item overview_fence">
+				<p class="p_title"><span></span>围栏数量</p>
+				<p class="p_overview"><img src="img/enclosure.png" alt="">{{total.fence}}<span>(个)</span></p>
+			</div>
+		</div>
+		<div class="pdout">
+			<div class="overview_item overview_police">
+				<p class="p_title"><span></span>地图数量</p>
+				<p class="p_overview"><img src="img/map.png" alt="">{{total.map}}<span>(个)</span></p>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="charts">
+
+	<div class="charts_wrap_abnormal">
+		<div class="abnormal_left">
+			<div class="abnormal_left_top">
+				<div class="chart_small chart_item_wrap">
+					<div class="chart_item_title">{{chartTag.itemTitle}}<span @click='getTagLine'></span></div>
+					<div id="chartTag"></div>
+				</div>
+				<div class="chart_small chart_item_wrap">
+					<div class="chart_item_title">{{chartAnchor.itemTitle}}<span @click='getAnchorLine'></span></div>
+					<div id="chartAnchor"></div>
+				</div>
+			</div>
+			<div class="abnormal_left_bottom chart_item_wrap">
+				<div class="chart_item_title">{{chartAlert.itemTitle}}<span @click='getTotalAlert'></span></div>
+				<div id="chartAlert"></div>
+			</div>
+		</div>
+		<div class="abnormal_right chart_item_wrap" v-show="enableHeartRate">
+			<div class="chart_item_title">{{heartRate.itemTitle}}<span @click='getHeartRate'></span></div>
+			<div id="heartRate"></div>
+		</div>
+	</div>
+
+
+	<div class="charts_wrap_normal">
+		<div class="chart_item chart_item_wrap" v-show="enableAggregate">
+			<div class="chart_item_title">{{aggregateAbnormal.itemTitle}}<span @click='getAggregateAbnormal'></span></div>
+			<div id="aggregateAbnormal"></div>
+		</div>
+		<div class="chart_item chart_item_wrap" v-show="enableStillness">
+			<div class="chart_item_title">{{stillnessAbnormal.itemTitle}}<span @click='getStillnessAbnormal'></span></div>
+			<div id="stillnessAbnormal"></div>
+		</div>
+		<div class="chart_item chart_item_wrap" v-show="enableOutlier">
+			<div class="chart_item_title">{{outlier.itemTitle}}<span @click='outlierChart'></span></div>
+			<div id="outlier"></div>
+		</div>
+	
+		<div class="chart_item chart_item_wrap profile" v-show="enableAttendance">
+			<div class="chart_item_title">考勤统计<span></span></div>
+			<div id="attendance_chart"></div>
+			<!-- <div id="vistor_chart"></div> -->
+		</div>
+		<!-- <div class="chart_item chart_item_wrap">
+			<div class="chart_item_title">title1<span></span></div>
+			<div id="polices_chart"></div>
+		</div> -->
+		<!-- <div class="chart_item chart_item_wrap">
+			<div class="chart_item_title">title1<span></span></div>
+			<div id="attendance_chart"></div>
+		</div> -->
+		<!-- <div class="chart_item chart_item_wrap">
+			<div class="chart_item_title">title1<span></span></div>
+		</div> -->
+	</div>
+
+
+
+
+	<!-- <div class="chart_item_wrap">
+		<span class="refresh_btn" @click='getAnchorLine'></span>
+		<div class="chart_item" id='anchor_chart'></div>
+	</div>
+	<div class="chart_item_wrap">
+		<span class="refresh_btn" @click='getTagLine'></span>	
+		<div class="chart_item" id='tag_chart'></div>
+	</div> -->
+	<!-- 考勤 -->
+	<!-- <div class="chart_item_wrap">
+		<span class="refresh_btn" @click='getVistor'></span>	
+		<div class="chart_item" id="vistor_chart"></div>
+	</div>
+	<div class="chart_item_wrap">
+		<span class="refresh_btn" @click='getPolices'></span>
+		<div class="chart_item" id="polices_chart">
+		</div>
+	</div>
+	<div class="chart_item_wrap" style="background:#abcdef;">
+		<table class="chart_item" id="attendance_chart" ></table>
+	</div>	 -->
+</div>
+</div>
+
+<div class="text-effect">
+    
+</div>
+
+
+</body>
+<script type='text/javascript' src="publicSet.js"></script>
+<script type='text/javascript' src="chartItemData.js"></script>
+<script type='text/javascript' src="proj_home.js"></script>
+</html>
