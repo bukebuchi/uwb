@@ -1,0 +1,180 @@
+body {
+    font-family: Monospace;
+    background-color: #f0f0f0;
+    margin: 0px;
+    overflow: hidden;
+}
+
+a {
+    color: red;
+}
+
+
+#menu {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    z-index:999;
+}
+
+#menu .tagPanel{
+    bottom: 40px;
+    position: absolute;
+    width: 100%;
+}
+
+.tagGridElement {
+    width: 120px;
+    height: 160px;
+    box-shadow: 0px 0px 12px rgba(0,255,255,0.5);
+    border: 1px solid rgba(127,255,255,0.25);
+    text-align: center;
+    cursor: default;
+}
+
+.tagGridElement:hover {
+    box-shadow: 0px 0px 12px rgba(0,255,255,0.75);
+    border: 1px solid rgba(127,255,255,0.75);
+}
+
+.tagGridElement .number {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 12px;
+    color: rgba(127,255,255,0.75);
+}
+
+.tagGridElement .symbol {
+    position: absolute;
+    top: 40px;
+    left: 0px;
+    right: 0px;
+    font-size: 40px;
+    font-weight: bold;
+    color: rgba(255,255,255,0.75);
+    text-shadow: 0 0 10px rgba(0,255,255,0.95);
+}
+
+.tagGridElement .details {
+    position: absolute;
+    bottom: 30px;
+    left: 0px;
+    right: 0px;
+    font-size: 12px;
+    color: rgba(127,255,255,0.75);
+}
+
+.tagGridElement .operate {
+    position: absolute;
+    bottom: 5px;
+    left: 0px;
+    right: 0px;
+    font-size: 12px;
+    /*color: rgba(127,255,255,0.75);*/
+}
+
+.tagGridElement .operate  button{
+    color: rgba(127,255,255,0.75);
+    background: transparent;
+    outline: 1px solid rgba(127,255,255,0.75);
+    border: 0px;
+    margin: 5px 10px;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.tagGridElement .operate button:active {
+    color: #000000;
+    background-color: rgba(0,255,255,0.75);
+}
+
+.tagGridElement .operate button:hover {
+    background-color: rgba(0,255,255,0.5);
+}
+
+
+#menu button {
+    color: rgba(127,255,255,0.75);
+    background: transparent;
+    outline: 1px solid rgba(127,255,255,0.75);
+    border: 0px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+#menu button:hover {
+    background-color: rgba(0,255,255,0.5);
+}
+#menu button:active {
+    color: #000000;
+    background-color: rgba(0,255,255,0.75);
+}
+
+.qrcodeCss{
+    width:400px;
+}
+
+.mapDialogCss{
+    height:360px;
+}
+
+.mapDialogCss img{
+    height:260px;
+    width:320px;
+}
+
+.el-carousel__mask {
+    background-color:#bba6a6;
+}
+
+@media only screen and (max-width: 700px) {
+    .qrcodeCss {
+        width: 300px;
+    }
+
+    .el-carousel__container{
+        height:80px;
+    }
+
+    .mapDialogCss{
+        height:120px;
+    }
+
+    .mapDialogCss img{
+        height:80px;
+        width:120px;
+    }
+
+    .el-dialog {
+        width:90%;
+    }
+
+}
+
+.searchTag-autocomplete {
+    li {
+        line-height: normal;
+        padding: 7px;
+
+        .cname {
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .code {
+            font-size: 12px;
+            color: #b4b4b4;
+        }
+
+        .highlighted .code {
+            color: #ddd;
+        }
+
+    }
+}
+
+.fenceClass {
+    width: 640px;
+    border-radius: 10px;
+}

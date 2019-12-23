@@ -50,7 +50,7 @@ function pageInit(){
         toolbar:'#heartRatetoolbar',
     columns: [
         // {field: 'id',title: 'ID', width:'4%', sortable:true, searchable:true},
-        {field: 'tag',title: '标签',width:'10%', sortable:true,searchable:true},
+        {field: 'tag',title: '手环',width:'10%', sortable:true,searchable:true},
         {field: 'anchor',title: '基站',width:'10%', sortable:true, searchable:true},
         {field: 'mapId',title: '地图',width:'16%', sortable:true, searchable:true,
             formatter:function(value, row, index){

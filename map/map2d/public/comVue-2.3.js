@@ -141,7 +141,7 @@ var commonVue={
 
 
     entry3DMap: function entry3DMap() {
-        window.location.href = this.selfHost + '/map/map3d/';
+        window.location.href = ME.selfHost + '/map/map3d/';
     },
 
     go2Tplatform: function go2Tplatform() {
@@ -309,6 +309,9 @@ var commonVue={
         //
         // });
     },
+    entry3DMap: function entry3DMap() {
+                window.location.href = this.selfHost + '/map3d/index/';
+            },
 
     updateFenceInnerTags: function updateFenceInnerTags(isIn, tag, fence) {
         if (fence.innerTags[tag.code]) {

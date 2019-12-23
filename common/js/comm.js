@@ -21,7 +21,7 @@ var UBIT = {
 
         user:null,
         api_token:null,
-        isSuper: false,
+        isSuper: true,
 
         fenceType:{
             attendanceId:4,//考勤区

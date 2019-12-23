@@ -1,0 +1,12 @@
+.attendance-font-color{
+    color:red;
+}
+.attendance-font-color-blue{
+    color:blue;
+}
+.attendance-font-color-gray{
+    color:#ccc;
+}
+#totalAttendeesTable{
+    height:255px;
+}

@@ -6,6 +6,7 @@
  * @param yCenter
  */
 ME.socketRequest = null;
+webSocket0 = null;
 ME.intervalTime = 20;
 ME.reconnectTime = 3000;
 ME.messageData = [];
@@ -44,6 +45,19 @@ function webSocketInit(model, realLength, methods, types) {
         socketUrl = ME.websocketUrl + "/websocket/" + ME.projectCode + "_" + ME.currentMapId + "_" + model + ME.api_token + typestr;
     }
     ME.socketRequest = new WebSocket(socketUrl);
+    webSocket0 = new WebSocket("ws://114.115.146.220:32501");
+    webSocket0.onopen = function (event) {
+        webSocket0.send('hello');
+
+    }
+    webSocket0.onclose = function (event) {
+
+    }
+    webSocket0.onmessage = function (event) {
+
+            console.log(event.data);
+    }
+    
     ME.socketRequest.onopen = function (event) {
         if (ME.socketRequest) {
             ME.socketRequest.open && ME.socketRequest.open(event, this);
@@ -117,7 +131,7 @@ function webSocketInit(model, realLength, methods, types) {
     }
     function onmessage (event){
         try {
-    
+            console.log(data);
             var data;
             try{
                 data = JSON.parse(event.data);

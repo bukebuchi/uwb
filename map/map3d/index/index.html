@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UbiTraq室内定位SaaS 3D</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="shortcut icon" href="../../common/img/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
+    <link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
+    <link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
+
+    <link type="text/css" rel="stylesheet" href="index.css">
+
+    <script src="../common/js/three.js"></script>
+    <script src="../common/js/OrbitControls.js"></script>
+    <script src="../common/js/ColladaLoader.js"></script>
+    <script src="../common/js/Detector.js"></script>
+    <script src="../common/js/tween.min.js"></script>
+    <script src="../common/js/CSS3DRenderer.js"></script>
+
+</head>
+
+<body>
+
+    <div id="allHandle" v-cloak>
+
+        <div id="menu" v-if="showMode=='admin'">
+            <el-button @click="mapDialog.visible = true">地图</el-button>
+            <el-button @click="tagPanelToggle">标签</el-button>
+            <el-button @click="search.visible = true ">搜索</el-button>
+            <el-button @click="qrcode.visible = true">二维码</el-button>
+
+            <div class="tagPanel" v-show="tagPanelShow">
+                <el-button onclick="tagPanelShowStyle('table')">列表</el-button>
+                <el-button onclick="tagPanelShowStyle('helix')" >螺旋</el-button>
+                <el-button onclick="tagPanelShowStyle('sphere')" >球形</el-button>
+            </div>
+
+        </div>
+
+
+
+        <el-dialog :title="qrcode.title" :visible.sync="qrcode.visible" custom-class="qrcodeCss">
+            <div style="text-align:center;" >
+                <div>2D</div>
+                <a :href="selfHost+ '/map2d/index/' ">
+                <qrcode :value="selfHost+ '/map2d/index/' " tag="img" :options="{ size: 180}" style="margin:10px"></qrcode>
+                </a>
+                <div>3D</div>
+                <qrcode :value="selfHost+ '/map3d/index/'" tag="img" :options="{ size: 180}" style="margin:10px"></qrcode>
+            </div>
+        </el-dialog>
+
+        <el-dialog :title="search.title" :visible.sync="search.visible" size="tiny">
+            <div style="text-align:center;" >
+                <el-autocomplete
+                        v-model="search.input"
+                        placeholder="请输入标签名称或编码"
+                        size="large"
+                        popper-class="searchTag-autocomplete"
+                        :fetch-suggestions="querySearch"
+                        custom-item="search-tag-option"
+                        @select="handleSelect"
+                        :on-icon-click="handleSearch"
+                ></el-autocomplete>
+                <el-button type="success" @click="handleSearch">搜索</el-button>
+                <el-button type="warning" @click="resetCamera">取消</el-button>
+            </div>
+        </el-dialog>
+
+        <el-dialog :title="mapDialog.title" :visible.sync="mapDialog.visible" >
+            <template>
+            <el-carousel type="card" :autoplay="mapDialog.autoplay"  :interval="4000" class="mapDialogCss">
+                <el-carousel-item v-for="item in map.data" :key="item">
+                    <div style="text-align:center">
+                    <img :src="imgHost+'maps_'+item.filePath"  :alt="item.cname" @click="changeMap(item.id)"/>
+                    </div>
+                </el-carousel-item>
+            </el-carousel>
+            </template>
+        </el-dialog>
+
+    </div>
+
+    <footer>
+
+        <script src="../../common/bin/super.common.min.js" defer></script>
+
+
+        <script type="text/javascript" src="../../common/js/comm.js" defer></script>
+        <script type="text/javascript" src="../../common/js/session-check.js" defer></script>
+        <script type="text/javascript" src="../../common/map/service.js" defer></script>
+        <script src="lib/data.js" defer></script>
+        <script type="text/javascript" src="../../common/map/dataManager.js" defer></script>
+        <script src="lib/marker.js" defer></script>
+        <script src="lib/tagGrid.js" defer></script>
+        <script src="lib/websocket.js" defer></script>
+        <script src="lib/init.js" defer></script>
+        <script src="lib/render.js" defer></script>
+        <script src="lib/vueInit.js" defer></script>
+        <script src="index.js" defer></script>
+    </footer>
+</body>
+</html>

@@ -1,132 +1,861 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
-<html lang="en" style="padding: 10px;">
+<html lang="zh">
+
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<title>用户管理</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精神病院安全管理系统</title>
+    <link rel="stylesheet" href="lib/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
 
-	<link rel="shortcut icon" href="../../common/img/favicon.ico">
-	<link rel="stylesheet" type="text/css" href="../../common/css/reset.css">
-	<link rel="stylesheet" href="../../common/plugins/bootstrap/css/bootstrap.min.css">
-	<link rel="stylesheet" href="../../common/plugins/bootstrap-table/bootstrap-table.min.css">
-	<link rel="stylesheet" href="../../common/plugins/element-ui/element-ui/lib/theme-default/index.css">
-	<link rel="stylesheet" href="index.css">
+<body>
+<div id="fengMap"></div>
 
-	<script type="text/javascript" src="../../common/bin/super.common.min.js" ></script>
+<!--操作按钮-->
+<div class="operating">
+    <button class="btn btn-default" id="showHistoricalTrace">添加历史轨迹</button>
+    <button class="btn btn-default" id="deleteHistoricalTrace">删除历史轨迹</button>
+</div>
 
-	<script type="text/javascript" src="../../common/js/comm.js" ></script>
-	<script type="text/javascript" src="../../common/js/session-check.js" ></script>
+<div id="tagsInfo" style="position: absolute; left: 2%; top: 10%; display: none">
+    <a href="javascript:void(0)" onclick="alert('定位标签267')">定位标签267   </a><input type="checkbox" id="checkBox1"/><br/><br/>
+    <a href="javascript:void(0)" onclick="alert('定位标签158')">定位标签158   </a><input type="checkbox" id="checkBox2"/><br/><br/>
+    <a href="javascript:void(0)" onclick="alert('定位标签272')">定位标签272   </a><input type="checkbox" id="checkBox3"/><br/><br/>
+    <a href="javascript:void(0)" onclick="alert('定位标签273')">定位标签273   </a><input type="checkbox" id="checkBox4"/><br/><br/>
+    <a href="javascript:void(0)" onclick="alert('定位标签274')">定位标签274   </a><input type="checkbox" id="checkBox5"/>
+</div>
 
-	<script>
-        /**
-         * 全局变量
-         */
-        var util = UBIT;
-        var ME = {
-            //访问路径
-            baseUrl : '/',
-            //请求的服务器地址
-            host: UBIT.host,
-            imgHost: UBIT.imgHost,
-            user: UBIT.user,
-            api_token: UBIT.api_token,
-            vm: null,
+<div style="position: absolute; left: 2%; top: 2%;">
+    <button class="btn btn-default" id="tagsManage">标签管理</button>
+</div>
+
+<div id="RailingInfo" style="position: absolute; right: 2%; top: 17%; display: none">
+</div>
+
+<div class="operating2">
+    <button class="btn btn-default" id="railingManage" style="display: block">电子围栏管理</button>
+    <button class="btn btn-default" id="addRailing" style="display: block">添加电子围栏</button>
+    <button class="btn btn-default" id="YesaddRailing" style="display: none">确定</button>
+    <button class="btn btn-default" id="NoaddRailing" style="display: none">取消</button>
+</div>
+
+<script src="lib/jquery-2.1.4.min.js"></script>
+<script src="lib/fengmap.min.js"></script>
+<script>
+    //获取版本号,设置title
+    document.title = 'UWB室内定位V' + fengmap.VERSION;
+
+    //定义全局map变量
+    var map;
+    var fmapID = 'qh-test';
+    var count = 0;
+    var locationMarker = null;
+    var defaultGroupID = 1;
+    var webSocketTest;
+    var api_token;
+    var resultJSON;
+    var mLocationMaker;
+    var isAdded;
+
+    //webSocket
+    var webSocket0;
+    var webSocket1;
+    var webSocket2;
+    var webSocket3;
+    var webSocket4;
+
+    //历史轨迹
+    var mPoints = [];
+    var isShown = false;
+
+    //电子围栏
+    var isAddingRailing = false;
+    var RailingPoints = [];
+    var group;
+    var layer;
+    var railingMarker = [];
+    var railingMarkerPoints = [];
+    var railingId = [];
+    var railingDeleteId = [];
+    var uploadPoints;
+    var isRailingInfoShown = false;
+
+
+    $(function() {
+        map = new fengmap.FMMap({
+            //渲染dom
+            container: document.getElementById('fengMap'),
+            //地图数据位置
+            mapServerURL: './data/' + fmapID,
+            //主题数据位置
+            mapThemeURL: 'data/theme',
+            //设置主题
+            defaultThemeName: '4003',
+            // 默认比例尺级别设置为20级
+            defaultMapScaleLevel: 22,
+            //开发者申请应用下web服务的key
+            key: 'f85f77f2ea2245420152dcb87b6c3180',
+            //开发者申请应用名称
+            appName: 'UWBWebIndoorLocator',
+        });
+
+        //打开Fengmap服务器的地图数据和主题
+        map.openMapById(fmapID);
+
+        //地图加载完成事件
+        map.on('loadComplete', function() {
+
+            //获取第一层
+            group = map.getFMGroup(map.groupIDs[0]);
+
+            //返回当前层中第一个polygonMarker,如果没有，则自动创建
+            layer = group.getOrCreateLayer('polygonMarker');
+
+            API_TOKEN();
+
+            //添加定位点标注，并设置定位点坐标为地图中心点
+            map.rotateTo({
+                to: 0,           //设置角度
+                duration: .3,      //动画持续时间，默认为。3秒
+            });
+
+            //创建楼层(按钮型)，创建时请在地图加载后(loadComplete回调)创建。
+            //不带单/双层楼层控制按钮,初始时只有1个按钮,点击后可弹出其他楼层按钮
+            groupControl = new fengmap.buttonGroupsControl(map, ctlOpt);
+
+            //保持多层和楼层切换一致
+            groupControl.onChange(function(groups, allLayer) {
+                //groups 表示当前要切换的楼层ID数组,
+                //allLayer表示当前楼层是单层状态还是多层状态。
+            });
+
+            //楼层控件是否可点击，默认为true
+            groupControl.enableExpand = true;
+
+            var toolControl = new fengmap.toolControl(map, {
+                //初始化2D模式
+                init2D: false,
+                //设置为false表示只显示2D,3D切换按钮
+                groupsButtonNeeded: false,
+                //点击按钮的回调方法,返回type表示按钮类型,value表示对应的功能值
+
+                position: fengmap.controlPositon.RIGHT_BOTTOM,
+
+                offset: {
+                    x: 70,
+                    y: 0
+                },
+
+                clickCallBack: function(type, value) {
+                    // console.log(type,value);
+                }
+            });
+
+            initLocationMarker();
+
+        });
+
+        map.on('mapClickNode', function(event) {
+            console.log('mapClickNode', event.eventInfo.coord);
+            if(isAddingRailing) {
+                RailingPoints.push({
+                    x: event.eventInfo.coord.x,
+                    y: event.eventInfo.coord.y,
+                    z: 0
+                });
+                if(RailingPoints.length === 3) {
+                    polygonMarker = new fengmap.FMPolygonMarker({
+                        //设置颜色
+                        color: '#4169E1',
+                        //设置透明度
+                        alpha: .5,
+                        //设置边框线的宽度
+                        lineWidth: 3,
+                        //设置高度
+                        height: 3,
+                        //设置电子围栏的坐标点
+                        points: RailingPoints
+                    });
+                    layer.addMarker(polygonMarker);
+                } else if(RailingPoints.length > 3) {
+                    layer.removeMarker(polygonMarker);
+                    polygonMarker = new fengmap.FMPolygonMarker({
+                        //设置颜色
+                        color: '#4169E1',
+                        //设置透明度
+                        alpha: .5,
+                        //设置边框线的宽度
+                        lineWidth: 3,
+                        //设置高度
+                        height: 6,
+                        //设置电子围栏的坐标点
+                        points: RailingPoints
+                    });
+                    layer.addMarker(polygonMarker);
+                }
+            }
+        });
+
+        function initWebSocket (webSocketTemp,num) {
+            webSocketTemp.onopen = function() {
+                window.alert('nihao');
+            };
+            webSocketTemp.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                console.log(data);
+                if(data.msgType === 'coord') {
+                    if(!isAdded[num]) {
+                        map.addLocationMarker(mLocationMaker[num])
+                    }
+                    mLocationMaker[num].x = data.x/100+map.minX;
+                    mLocationMaker[num].y = map.maxY-data.y/100;
+                }
+            };
+            webSocketTemp.onclose = function() {
+                map.removeLocationMarker(mLocationMaker[num]);
+                isAdded[num] = false;
+            }
+        }
+
+        function API_TOKEN () {
+            $.ajax({
+                type: 'POST',
+                url: "http://track.ubitraq.com:8082/user/login",
+                contentType: "application/json;charset=utf-8",
+                data: JSON.stringify({"loginCode": "jiankongzhineng", "loginPwd": "jiankongzhineng"}),
+                dataType: "text",
+                success: function (result) {
+                    //window.alert(result.toString());
+                    resultJSON = $.parseJSON(result.toString());
+                    api_token = resultJSON.entity.api_token;
+                    
+                    initSignalMarker();
+                    initRailing();
+                },
+                error: function (msg) {
+                    window.alert(msg);
+                }
+            });
+        }
+
+        function initSignalMarker() {
+            $.ajax({
+                type: 'GET',
+                headers: {"api_token": api_token},
+                url: "http://track.ubitraq.com:8082/project/anchor/list",
+                success: function (result) {
+                    
+                    for (var i = 0; i < result.length; i++) {
+                        var signalMarker = new fengmap.FMLocationMarker({
+                            url: 'image/signal.png',
+                            //设置图片显示尺寸
+                            size: 36,
+                            //设置图片高度，默认是5
+                            height: 0,
+                        });
+                        map.addLocationMarker(signalMarker);
+                        signalMarker.x = result[i].x/100 + map.minX;
+                        signalMarker.y = map.maxY - result[i].y/100;
+                    }
+                },
+                error: function (msg) {
+                    window.alert(msg);
+                }
+            });
+        }
+
+        function initLocationMarker() {
+            mLocationMaker = [
+                new fengmap.FMLocationMarker({url: 'image/point2.png', size: 30, height: 0}),
+                new fengmap.FMLocationMarker({url: 'image/point2.png', size: 30, height: 0}),
+                new fengmap.FMLocationMarker({url: 'image/point2.png', size: 30, height: 0}),
+                new fengmap.FMLocationMarker({url: 'image/point2.png', size: 30, height: 0}),
+                new fengmap.FMLocationMarker({url: 'image/point2.png', size: 30, height: 0})
+            ]
+            isAdded = [false,false,false,false,false];
+        }
+        //创建定位点标注
+        function addLocationMarker(coord) {
+            locationMarker = new fengmap.FMLocationMarker({
+                url: 'image/point2.png',
+                //设置图片显示尺寸
+                size: 30,
+                //设置图片高度，默认是5
+                height: 10,
+                callback: function() {
+                    // 设置LocationMarker的，初始方向
+                    locationMarker.direction = -90;
+                }
+            });
+
+            map.addLocationMarker(locationMarker);
+
+            /*locationMarker.setPosition({
+                //设置定位点的x坐标
+                x: coord.x,
+                //设置定位点的y坐标
+                y: coord.y,
+                //设置定位点所在楼层
+                groupID: defaultGroupID,
+                //设置定位点的高于楼层多少
+                zOffset: 1,
+            });*/
+        };
+        function alertTest() {
+            window.alert("yesClick");
+        }
+
+        //移动的方法
+        function moveTo(coord) {
+            //改变locMarker的x值
+            locationMarker.x = coord.x;
+            //改变locMarker的y值
+            locationMarker.y = coord.y;
+            /*map.moveTo({
+                //改变中心点x的位置
+                x: coord.x,
+                //改变中心点y的位置
+                y: coord.y,
+                //默认时间是0.3秒
+                time: 1,
+                callback: function() {
+                    // console.log('moveTo Complete!');
+                }
+            });*/
         };
 
-	</script>
+        //楼层控制控件配置参数
+        var ctlOpt = new fengmap.controlOptions({
+            //默认在右下角
+            position: fengmap.controlPositon.RIGHT_BOTTOM,
+            //默认显示楼层的个数
+            showBtnCount: 7,
+            //位置x,y的偏移量
+            offset: {
+                x: 20,
+                y: 0
+            }
+        });
 
-</head>
-<body>
-	
-	<div id="app" v-cloak>
+        //var webSocketTest = newWebSocket();
+        //var loginInfo = {"loginCode":"qhnyadmin","loginPwd":"qhnyadmin"};
 
-		<div id="usertoolbar" >
-			<el-button type="info" size="small"  @click="userAdd" >添加</el-button>
-			<el-button type="danger" size="small"  @click="userDelete" :loading="userDeleteBtnDisable">删除</el-button>
-			<el-button type="warning" size="small"  @click="userUpdate" >修改</el-button>
-			<el-button type="danger" size="small"  @click="resetPwd">重置密码</el-button>
-			<el-button type="info" size="small" onclick="UBIT.bootstrapTableExportCsv('usertable', true);">导出</el-button>
-		</div>
+        $("#checkBox1").on('click',function() {
+            if(this.checked) {
+                var stamp = new Date().getTime();
+                webSocket0 = new WebSocket("ws://track.ubitraq.com:8083/websocket/tag_00000255_2d" + stamp + api_token);
+                initWebSocket(webSocket0,0);
+                if(isAdded[0] === false) {
+                    map.addLocationMarker(mLocationMaker[0]);
+                    isAdded[0] = true;
+                }
+                mLocationMaker[0].x = map.center.x;
+                mLocationMaker[0].y = map.center.y;
+            } else {
+                webSocket0.close();
+            }
+        });
+        $("#checkBox2").on('click',function() {
+            if(this.checked) {
+                var stamp = new Date().getTime();
+                webSocket1 = new WebSocket("ws://track.ubitraq.com:8083/websocket/tag_58010000_2d" + stamp + api_token);
+                initWebSocket(webSocket1,1);
+            } else {
+                webSocket1.close();
+            }
+        });
+        $("#checkBox3").on('click',function() {
+            if(this.checked) {
+                var stamp = new Date().getTime();
+                webSocket2 = new WebSocket("ws://track.ubitraq.com:8083/websocket/tag_72020000_2d" + stamp + api_token);
+                initWebSocket(webSocket2,2);
+            } else {
+                webSocket2.close();
+            }
+        });
+        $("#checkBox4").on('click',function() {
+            if(this.checked) {
+                var stamp = new Date().getTime();
+                webSocket3 = new WebSocket("ws://track.ubitraq.com:8083/websocket/tag_73020000_2d" + stamp + api_token);
+                initWebSocket(webSocket3,3);
+            } else {
+                webSocket3.close();
+            }
+        });
+        $("#checkBox5").on('click',function() {
+            if(this.checked) {
+                var stamp = new Date().getTime();
+                webSocket4 = new WebSocket("ws://track.ubitraq.com:8083/websocket/tag_74020000_2d" + stamp + api_token);
+                initWebSocket(webSocket4,4);
+            } else {
+                webSocket4.close();
+            }
+        });
+
+        //绘制线图层
+        function drawLines(results) {
+            //绘制部分
+            //配置线型、线宽、透明度等
+            var lineStyle = {
+                //设置线的宽度
+                lineWidth: 4,
+                //设置线的透明度
+                alpha: 0.8,
+                //设置线的类型为导航线
+                lineType: fengmap.FMLineType.FMARROW,
+                //设置线动画,false为动画
+                noAnimate: true,
+            };
+            var line = new fengmap.FMLineMarker();
+            var seg = new fengmap.FMSegment();
+            seg.groupId = 1;
+            seg.points = results;
+            line.addSegment(seg);
+            map.drawLineMark(line, lineStyle);
+        };
+
+        //显示历史轨迹
+        $("#showHistoricalTrace").on('click', function() {
+
+            var myDate = new Date();
+            var time = "&start=" + myDate.getFullYear() + "-" + (myDate.getMonth()) + "-" + myDate.getDate() + "%20" + (myDate.getHours()-4) + ":" + (myDate.getMinutes()) + ":" + myDate.getSeconds() + "&end=" + myDate.getFullYear() + "-" + (myDate.getMonth()+1) + "-" + myDate.getDate() + "%20" + (myDate.getHours()) + ":" + (myDate.getMinutes()) + ":" + myDate.getSeconds();
+
+            console.log(1,"http://track.ubitraq.com:8082/history/list?&mapId=5&tagCodes=" + "00000255" + time);
+            if (document.getElementById("checkBox1").checked) {
+                $.ajax({
+                    type: 'GET',
+                    headers: {"api_token": api_token},
+
+                    url: "http://track.ubitraq.com:8082/history/list?&mapId=5&tagCodes=" + "00000255" + time,
+                    success: function (result) {
+                        var poe=result.datas;
+                        window.alert(poe);
+                        var pathlength = poe["00000255"].paths.length;
+                        for (var i = 0; i < pathlength; i++) {
+                            var tempLocation = {
+                                x: poe["00000255"].paths[i].x / 100 + map.minX,
+                                y: map.maxY - poe["00000255"].paths[i].y / 100,
+                                z: 0
+                            };
+                            mPoints.push(tempLocation);
+                        }
+                        drawLines(mPoints);
+                    },
+                    error: function (msg) {
+                        window.alert(msg);
+                    }
+                });
+            }
+            if (document.getElementById("checkBox2").checked) {
+                $.ajax({
+                    type: 'GET',
+                    headers: {"api_token": api_token},
+                    url: "http://track.ubitraq.com:8082/history/list?mapId=4&tagMacs%5B%5D=" + "58010000" + time,
+                    success: function (result) {
+                        //window.alert(result.toString());
+                        var pathlength = result["101"].paths.length;
+                        for (var i = 0; i < pathlength; i++) {
+                            var tempLocation = {
+                                x: result["101"].paths[i].x / 100 + map.minX,
+                                y: map.maxY - result["101"].paths[i].y / 100,
+                                z: 0
+                            };
+                            mPoints.push(tempLocation);
+                        }
+                        drawLines(mPoints);
+                    },
+                    error: function (msg) {
+                        window.alert(msg);
+                    }
+                });
+            }
+            if (document.getElementById("checkBox3").checked) {
+                $.ajax({
+                    type: 'GET',
+                    headers: {"api_token": api_token},
+                    url: "http://track.ubitraq.com:8082/history/list?mapId=4&tagMacs%5B%5D=" + "72020000" + time,
+                    success: function (result) {
+                        //window.alert(result.toString());
+                        var pathlength = result["596"].paths.length;
+                        for (var i = 0; i < pathlength; i++) {
+                            var tempLocation = {
+                                x: result["596"].paths[i].x / 100 + map.minX,
+                                y: map.maxY - result["596"].paths[i].y / 100,
+                                z: 0
+                            };
+                            mPoints.push(tempLocation);
+                        }
+                        drawLines(mPoints);
+                    },
+                    error: function (msg) {
+                        window.alert(msg);
+                    }
+                });
+            }
+            if (document.getElementById("checkBox4").checked) {
+                $.ajax({
+                    type: 'GET',
+                    headers: {"api_token": api_token},
+                    url: "http://track.ubitraq.com:8082/history/list?mapId=4&tagMacs%5B%5D=" + "73020000" + time,
+                    success: function (result) {
+                        //window.alert(result.toString());
+                        var pathlength = result["597"].paths.length;
+                        for (var i = 0; i < pathlength; i++) {
+                            var tempLocation = {
+                                x: result["597"].paths[i].x / 100 + map.minX,
+                                y: map.maxY - result["597"].paths[i].y / 100,
+                                z: 0
+                            };
+                            mPoints.push(tempLocation);
+                        }
+                        drawLines(mPoints);
+                    },
+                    error: function (msg) {
+                        window.alert(msg);
+                    }
+                });
+            }
+            if (document.getElementById("checkBox5").checked) {
+                $.ajax({
+                    type: 'GET',
+                    headers: {"api_token": api_token},
+                    url: "http://track.ubitraq.com:8082/history/list?mapId=4&tagMacs%5B%5D=" + "74020000" + time,
+                    success: function (result) {
+                        //window.alert(result.toString());
+                        var pathlength = result["585"].paths.length;
+                        for (var i = 0; i < pathlength; i++) {
+                            var tempLocation = {
+                                x: result["585"].paths[i].x / 100 + map.minX,
+                                y: map.maxY - result["585"].paths[i].y / 100,
+                                z: 0
+                            };
+                            mPoints.push(tempLocation);
+                        }
+                        drawLines(mPoints);
+                    },
+                    error: function (msg) {
+                        window.alert(msg);
+                    }
+                });
+            }
+        });
+
+        $("#deleteHistoricalTrace").on('click', function() {
+            map.clearLineMark();
+        });
+
+        $("#tagsManage").on('click', function() {
+            if(isShown) {
+                document.getElementById("tagsInfo").style.display = 'none';
+                document.getElementById("tagsManage").style.outline = 'none';
+                document.getElementById("tagsManage").style.boxShadow = 'none';
+
+                isShown = false;
+            } else {
+                document.getElementById("tagsInfo").style.display = 'block';
+                document.getElementById("tagsManage").style.outline = 'none';
+                document.getElementById("tagsManage").style.boxShadow = 'none';
+
+                isShown = true;
+            }
+        });
+
+        function initRailing() {
+
+            $.ajax({
+                type: 'GET',
+                headers: {"api_token": api_token},
+                url: "http://track.ubitraq.com:8082/fence/list?mapId=5",
+                success: function (result) {
+                    window.alert(result.length);
+                    for(var i=0; i<result.length; i++) {
+
+                        var pointArr = result[i].points.split(",");
+                        for(var j=0; j<pointArr.length; j++) {
+                            var loc = pointArr[j].split(" ");
+                            railingMarkerPoints.push({
+                                x: loc[0]/100 + map.minX,
+                                y: map.maxY - loc[1]/100,
+                                z: 0
+                            });
+                        }
+
+                        railingMarker[i] = new fengmap.FMPolygonMarker({
+                            //设置颜色
+                            color: '#4169E1',
+                            //设置透明度
+                            alpha: .5,
+                            //设置边框线的宽度
+                            lineWidth: 3,
+                            //设置高度
+                            height: 3,
+                            //设置电子围栏的坐标点
+                            points: railingMarkerPoints
+                        });
+
+                        railingDeleteId[i] = result[i].id;
+
+                        var oCheckbox=document.createElement("input");
+                        var oButton=document.createElement("input");
+                        var br=document.createElement("br");
+                        var myText=document.createTextNode(result[i].cname);
+                        oCheckbox.setAttribute("type","checkbox");
+                        oCheckbox.setAttribute("id",result[i].cname);
+                        oButton.setAttribute("type","button");
+                        oButton.setAttribute("value","x");
+                        oButton.setAttribute("id","btn"+result[i].cname);
+                        var mydiv=document.getElementById("RailingInfo");
+                        mydiv.appendChild(oCheckbox);
+                        mydiv.appendChild(myText);
+                        mydiv.appendChild(oButton);
+                        mydiv.appendChild(br);
+                        railingId[i] = result[i].cname;
+
+                        /*var num = i;
 
 
-		<table id="usertable"></table>
+                        $("#" + railingId[num]).on('click', function () {
 
+                            console.log("test",railingId[0]);
 
-		<el-dialog :title="form.title" :visible.sync="dialogFormVisible" class="phone_b">
-		    <el-form :model="form" :rules="modefiyPwdRule" ref="form" label-width="100px" class="demo-ruleForm">
+                            if (this.checked) {
 
-					<el-form-item >
-						<span  style="color:red;">* 新用户初始密码为用户账号</span>
-					</el-form-item>
+                                layer.addMarker(railingMarker[num]);
 
-			  		<el-form-item label="账号" prop="code" >
-			    		<el-input type="text" v-model="form.code" auto-complete="off"></el-input>
-				  	</el-form-item>
-				  	<el-form-item label="姓名" prop="cname">
-			    		<el-input type="text" v-model="form.cname" auto-complete="off"></el-input>
-				  	</el-form-item>
-				  	<el-form-item label="用户类型" prop="userType">
-			    		<el-select v-model="form.userType" placeholder="请选择">
-						    <el-option
-						      v-for="item in userType"
-						      :key="item.code"
-						      :label="item.cname"
-						      :value="item.code">
-						    </el-option>
-						 </el-select>
-				  	</el-form-item>
-				  	<el-form-item label="是否激活" prop="isActive">
-				  	  <el-radio-group v-model="form.isActive">
-			    		<el-radio label="1">是</el-radio>
-  						<el-radio label="0">否</el-radio>
-  					  </el-radio-group>
-				  	</el-form-item>
-				  	<el-form-item label="电话" prop="cellphone">
-			    		<el-input type="text" v-model="form.cellphone" auto-complete="off" ></el-input>
-				  	</el-form-item>
-				  	<el-form-item label="邮箱" prop="email">
-			    		<el-input type="text" v-model="form.email" auto-complete="off" ></el-input>
-				  	</el-form-item>
-				  	<el-form-item label="出生日期" prop="birthDate">
-					      <el-form-item prop="birthDate">
-					        <el-date-picker type="date" placeholder="选择日期" v-model="form.birthDate" style="width: 30%;"></el-date-picker>
-					      </el-form-item>
-				  	</el-form-item>
-				  	<el-form-item label="住址" prop="address">
-			    		<el-input type="text" v-model="form.address" auto-complete="off"></el-input>
-				  	</el-form-item>
-				  	<el-form-item label="头像" prop="img">
-			    		<el-input type="img" v-model="form.img" auto-complete="off"></el-input>
-				  	</el-form-item>
-				  	<el-form-item label="项目" prop="projectId">
-			    		<el-select v-model="form.projectId" placeholder="请选择">
-						    <el-option
-						      v-for="item in projects"
-						      :key="item.id"
-						      :label="item.cname"
-						      :value="item.id">
-						    </el-option>
-						 </el-select>
-				  	</el-form-item>
-			  		
-				  	<el-form-item>
-				   		<el-button type="primary" @click="submitForm('form')" size="small" :loading="userBtnDisable">提交</el-button>
-					</el-form-item>
-			</el-form>
+                                console.log(num, railingMarker[num]);
 
-		</el-dialog>
+                            } else {
+                                layer.removeMarker(railingMarker[num]);
 
+                                railingMarker[num] = new fengmap.FMPolygonMarker({
+                                    //设置颜色
+                                    color: '#4169E1',
+                                    //设置透明度
+                                    alpha: .5,
+                                    //设置边框线的宽度
+                                    lineWidth: 3,
+                                    //设置高度
+                                    height: 3,
+                                    //设置电子围栏的坐标点
+                                    points: railingMarker[num].points
+                                });
 
-	</div>
+                                console.log(num, railingMarker[num]);
+                            }
+                        });*/
 
+                        railingMarkerPoints = [];
 
-<footer>
+                        if(i === result.length-1) {
+                            initRailingCheckBox();
+                            initRailingDeleteButton();
+                        }
+                    }
 
-	<script type="text/javascript" src="index.js"></script>
+                },
+                error: function (msg) {
+                    window.alert(msg);
+                }
+            });
+        }
 
-</footer>
+        function initRailingCheckBox() {
 
+            for(var k=0; k<railingId.length; k++) {
+
+                (function(k) {
+
+                    var num = k;
+
+                    document.getElementById(railingId[k]).onclick = function () {
+
+                        if (this.checked) {
+
+                            layer.addMarker(railingMarker[num]);
+
+                            console.log(num, railingMarker[num]);
+
+                        } else {
+                            layer.removeMarker(railingMarker[num]);
+
+                            railingMarker[num] = new fengmap.FMPolygonMarker({
+                                //设置颜色
+                                color: '#4169E1',
+                                //设置透明度
+                                alpha: .5,
+                                //设置边框线的宽度
+                                lineWidth: 3,
+                                //设置高度
+                                height: 3,
+                                //设置电子围栏的坐标点
+                                points: railingMarker[num].points
+                            });
+
+                            console.log(num, railingMarker[num]);
+                        }
+                    };
+                }) (k);
+            }
+        }
+
+        function initRailingDeleteButton() {
+            for(var k=0; k<railingId.length; k++) {
+
+                (function (k) {
+
+                    var num = k;
+
+                    document.getElementById("btn"+railingId[num]).onclick = function () {
+                        var mydiv = document.getElementById("RailingInfo");
+                        mydiv.removeChild(document.getElementById(railingId[num]));
+                        mydiv.removeChild(document.getElementById("btn"+railingId[num]));
+                    }
+                })(k)
+            }
+        }
+
+        $("#addRailing").on('click', function(){
+            document.getElementById("addRailing").style.display = 'none';
+            document.getElementById("YesaddRailing").style.display = 'inline';
+            document.getElementById("NoaddRailing").style.display = 'inline';
+
+            isAddingRailing = true;
+            RailingPoints = [];
+        });
+
+        $("#YesaddRailing").on('click', function(){
+            isAddingRailing = false;
+            if(RailingPoints.length < 3) {
+                window.alert("添加电子围栏失败！");
+            } else {
+                layer.removeMarker(polygonMarker);
+                var railingName = prompt("请输入电子围栏名称", "");
+                if (railingName !== null) {
+                    if(railingId.indexOf(railingName) !== -1) {
+                        window.alert("电子围栏名称重复");
+                    } else {
+
+                        uploadPoints = "";
+                        for(var i=0; i<RailingPoints.length; i++) {
+                            uploadPoints += ((RailingPoints[i].x-map.minX)*100)+" "+((map.maxY-RailingPoints[i].y)*100);
+                            if(RailingPoints.length !== i+1) {
+                                uploadPoints += ",";
+                            }
+                        }
+
+                        $.ajax({
+                            type: 'POST',
+                            headers: {"api_token": api_token},
+                            url: "http://track.ubitraq.com:8082/fence/add",
+                            data: JSON.stringify({"cname": railingName, "points": uploadPoints, "ftypeId": 2, "mapId": 4}),
+                            contentType: "application/json; charset=utf-8",
+                            success: function (result) {
+
+                                console.log("right?",result);
+
+                                if(result.isOk) {
+                                    var addingLength = railingMarker.length;
+                                    railingMarker[addingLength] = new fengmap.FMPolygonMarker({
+                                        //设置颜色
+                                        color: '#4169E1',
+                                        //设置透明度
+                                        alpha: .5,
+                                        //设置边框线的宽度
+                                        lineWidth: 3,
+                                        //设置高度
+                                        height: 3,
+                                        //设置电子围栏的坐标点
+                                        points: RailingPoints
+                                    });
+
+                                    railingDeleteId[addinglength] = result.id;
+
+                                    var oCheckbox = document.createElement("input");
+                                    var oButton=document.createElement("input");
+                                    var br = document.createElement("br");
+                                    var myText = document.createTextNode(railingName);
+                                    oCheckbox.setAttribute("type", "checkbox");
+                                    oCheckbox.setAttribute("id", railingName);
+                                    oButton.setAttribute("type","button");
+                                    oButton.setAttribute("value","x");
+                                    oButton.setAttribute("id","btn"+railingName);
+                                    var mydiv = document.getElementById("RailingInfo");
+                                    mydiv.appendChild(oCheckbox);
+                                    mydiv.appendChild(myText);
+                                    mydiv.appendChild(oButton);
+                                    mydiv.appendChild(br);
+                                    railingId[addingLength] = railingName;
+
+                                    document.getElementById(railingName).onclick = function () {
+
+                                        if (this.checked) {
+
+                                            layer.addMarker(railingMarker[addingLength]);
+
+                                        } else {
+                                            layer.removeMarker(railingMarker[addingLength]);
+
+                                            railingMarker[addingLength] = new fengmap.FMPolygonMarker({
+                                                //设置颜色
+                                                color: '#4169E1',
+                                                //设置透明度
+                                                alpha: .5,
+                                                //设置边框线的宽度
+                                                lineWidth: 3,
+                                                //设置高度
+                                                height: 3,
+                                                //设置电子围栏的坐标点
+                                                points: railingMarker[addingLength].points
+                                            });
+                                        }
+                                    };
+
+                                    document.getElementById("btn"+railingName).onclick = function () {
+
+                                    }
+
+                                }
+                            },
+                            error: function (msg) {
+                                window.alert(msg);
+                            }
+                        });
+                    }
+                }
+            }
+
+            document.getElementById("addRailing").style.display = 'inline';
+            document.getElementById("YesaddRailing").style.display = 'none';
+            document.getElementById("NoaddRailing").style.display = 'none';
+
+        });
+
+        $("#NoaddRailing").on('click', function(){
+           isAddingRailing = false;
+           if(RailingPoints.length > 2) {
+               layer.removeMarker(polygonMarker);
+           }
+
+            document.getElementById("addRailing").style.display = 'inline';
+            document.getElementById("YesaddRailing").style.display = 'none';
+            document.getElementById("NoaddRailing").style.display = 'none';
+
+        });
+
+        $("#railingManage").on('click', function(){
+            if(isRailingInfoShown) {
+                document.getElementById("RailingInfo").style.display = 'none';
+                isRailingInfoShown = false;
+            } else {
+                document.getElementById("RailingInfo").style.display = 'inline';
+                isRailingInfoShown = true;
+            }
+        });
+        
+    });
+</script>
 </body>
-</html>
 
+</html>

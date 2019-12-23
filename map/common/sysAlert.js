@@ -96,7 +96,7 @@ var SysAlert = {
         data.alias = tag?(tag.alias?tag.alias:tag.code):data.code;
         SysAlert.notification('fenceAlert', data);
         if(ME.projectCode === 'jiankongzhineng'){//临时使用,进入围栏30秒没有出来报警
-            // console.log(data);
+            console.log(data);
             if(data.isIn){
                 if(intervalId){
                     clearInterval(intervalId);

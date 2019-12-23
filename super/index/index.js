@@ -185,7 +185,7 @@ function vueInit(){
                     {
                         "id": 70,
                         "code": "doctor",
-                        "cname": "医生管理",
+                        "cname": "三维地图管理",
                         "fid": 14,
                         "isActive": 1,
                         "path": "../user/",
@@ -198,6 +198,23 @@ function vueInit(){
                     }
                     
                     jsonarray.push(arr);
+                    var arr1  = 
+                    {
+                        "id": 71,
+                        "code": "patient",
+                        "cname": "病人管理",
+                        "fid": 14,
+                        "isActive": 1,
+                        "path": "../patient/",
+                        "iconCls": "",
+                        "module": "proj",
+                        "sort": 15,
+                        "memo": null,
+                        "addTime": "2019-06-30T04:56:00.000Z",
+                        "upUser": ""
+                    }
+                    
+                    jsonarray.push(arr1);
                     console.log(jsonarray);
                     menu.children = jsonarray;
                     this.activeIndex = menu.code;

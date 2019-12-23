@@ -524,6 +524,7 @@
     "electron": "^1.6.11",
     "file-loader": "^0.11.2",
     "got": "^7.1.0",
+    "h5.modbus": "github:morkai/h5.modbus#master",
     "highcharts": "^v5.0.14",
     "html-webpack-plugin": "^2.29.0",
     "loader-runner": "^2.3.0",
